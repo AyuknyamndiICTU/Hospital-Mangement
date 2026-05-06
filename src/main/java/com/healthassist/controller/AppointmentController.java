@@ -109,7 +109,7 @@ public class AppointmentController {
         name.setStyle("-fx-font-weight: bold; -fx-text-fill: #1E293B; -fx-font-size: 13;");
         Label spec = new Label(doc.getSpecialization() != null ? doc.getSpecialization() : "General");
         spec.setStyle("-fx-text-fill: #64748B; -fx-font-size: 11;");
-        Label rate = new Label(doc.getRatePerHour() != null ? "$" + doc.getRatePerHour() + "/hr" : "");
+        Label rate = new Label(doc.getRatePerHour() != null ? doc.getRatePerHour() + " FCFA/hr" : "");
         rate.setStyle("-fx-text-fill: #2D5BE3; -fx-font-size: 11; -fx-font-weight: bold;");
 
         Button selectBtn = new Button("Select");
@@ -138,7 +138,7 @@ public class AppointmentController {
         detailName.setText(doc.getFullName());
         detailSpec.setText(doc.getSpecialization() != null ? doc.getSpecialization() : "General");
         detailHospital.setText("🏥  " + (doc.getHospital() != null ? doc.getHospital() : "N/A"));
-        detailRate.setText("💰  " + (doc.getRatePerHour() != null ? "$" + doc.getRatePerHour() + "/hr" : "N/A"));
+        detailRate.setText("💰  " + (doc.getRatePerHour() != null ? doc.getRatePerHour() + " FCFA/hr" : "N/A"));
         detailHours.setText("🕐  " + (doc.getWorkingHours() != null ? doc.getWorkingHours() : "N/A"));
         detailEmail.setText("✉  " + doc.getEmail());
     }
