@@ -66,7 +66,7 @@ public class DoctorController {
         spec.setStyle("-fx-text-fill: #64748B; -fx-font-size: 12;");
         Label hosp = new Label("🏥 " + (doc.getHospital() != null ? doc.getHospital() : "N/A"));
         hosp.setStyle("-fx-text-fill: #64748B; -fx-font-size: 11;");
-        Label rate = new Label(doc.getRatePerHour() != null ? "$" + doc.getRatePerHour() + "/hr" : "");
+        Label rate = new Label(doc.getRatePerHour() != null ? doc.getRatePerHour() + " FCFA/hr" : "");
         rate.setStyle("-fx-text-fill: #2D5BE3; -fx-font-size: 13; -fx-font-weight: bold;");
 
         HBox btns = new HBox(8);
@@ -150,7 +150,7 @@ public class DoctorController {
         if (existing == null) { grid.add(new Label("Password:"), 0, row); grid.add(passF, 1, row++); }
         grid.add(new Label("Specialization:"), 0, row); grid.add(specF, 1, row++);
         grid.add(new Label("Hospital:"), 0, row); grid.add(hospF, 1, row++);
-        grid.add(new Label("Rate/Hour ($):"), 0, row); grid.add(rateF, 1, row++);
+        grid.add(new Label("Rate/Hour (FCFA):"), 0, row); grid.add(rateF, 1, row++);
         grid.add(new Label("Working Hours:"), 0, row); grid.add(hoursF, 1, row++);
         grid.add(new Label("Schedule Days:"), 0, row); grid.add(daysBox, 1, row++);
         grid.add(new Label("Schedule Time:"), 0, row); grid.add(timeBox, 1, row++);
