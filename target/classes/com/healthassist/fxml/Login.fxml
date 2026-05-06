@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.healthassist.controller.LoginController"
+            prefWidth="1100" prefHeight="750" styleClass="login-root">
+
+    <!-- ═══ MAIN CONTAINER ═══ -->
+    <HBox AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+          alignment="CENTER">
+
+        <!-- ═══ LEFT PANEL — Decorative Blue Panel ═══ -->
+        <VBox styleClass="login-left-panel" alignment="CENTER" spacing="20"
+              HBox.hgrow="ALWAYS" minWidth="450">
+            <padding><Insets top="60" right="40" bottom="60" left="40"/></padding>
+
+            <!-- Decorative Circles -->
+            <StackPane>
+                <Circle radius="80" styleClass="deco-circle-large"/>
+                <Circle radius="50" styleClass="deco-circle-medium" translateX="-100" translateY="-60"/>
+                <Circle radius="30" styleClass="deco-circle-small" translateX="120" translateY="40"/>
+                <Circle radius="20" styleClass="deco-circle-tiny" translateX="-60" translateY="80"/>
+            </StackPane>
+
+            <Label text="WELCOME" styleClass="welcome-title">
+                <font><Font name="System Bold" size="42"/></font>
+            </Label>
+            <Label text="Health Assistance System" styleClass="welcome-subtitle">
+                <font><Font size="18"/></font>
+            </Label>
+            <Label text="Your trusted partner in healthcare management.&#10;Secure, efficient, and reliable."
+                   styleClass="welcome-desc" wrapText="true" textAlignment="CENTER" maxWidth="350">
+                <font><Font size="13"/></font>
+            </Label>
+
+            <!-- Decorative bottom circles -->
+            <StackPane>
+                <Circle radius="15" styleClass="deco-circle-small" translateX="80" translateY="20"/>
+                <Circle radius="25" styleClass="deco-circle-medium" translateX="-90" translateY="-10"/>
+            </StackPane>
+        </VBox>
+
+        <!-- ═══ RIGHT PANEL — Login Form ═══ -->
+        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" minWidth="500" styleClass="login-right-bg">
+            <padding><Insets top="40" right="60" bottom="40" left="60"/></padding>
+
+            <!-- White Card -->
+            <VBox styleClass="login-card" spacing="18" alignment="CENTER_LEFT" maxWidth="420">
+                <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+
+                <!-- Header -->
+                <Label text="Sign In" styleClass="login-heading">
+                    <font><Font name="System Bold" size="28"/></font>
+                </Label>
+                <Label text="Enter your credentials to access your account" styleClass="login-subheading">
+                    <font><Font size="13"/></font>
+                </Label>
+
+                <Region prefHeight="10"/>
+
+                <!-- Email Field -->
+                <Label text="Email Address" styleClass="field-label"/>
+                <TextField fx:id="usernameField" promptText="Enter your email"
+                           styleClass="login-input" prefHeight="44"/>
+
+                <!-- Password Field -->
+                <Label text="Password" styleClass="field-label"/>
+                <StackPane>
+                    <PasswordField fx:id="passwordField" promptText="Enter your password"
+                                   styleClass="login-input" prefHeight="44"/>
+                    <TextField fx:id="passwordVisible" promptText="Enter your password"
+                               styleClass="login-input" prefHeight="44" visible="false" managed="false"/>
+                    <Button fx:id="showPasswordBtn" text="SHOW" styleClass="show-password-btn"
+                            onAction="#onTogglePassword"
+                            StackPane.alignment="CENTER_RIGHT">
+                        <StackPane.margin><Insets right="10"/></StackPane.margin>
+                    </Button>
+                </StackPane>
+
+                <!-- Remember Me + Forgot Password -->
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <CheckBox fx:id="rememberMeCheck" text="Remember me" styleClass="remember-check"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Hyperlink text="Forgot Password?" styleClass="forgot-link"/>
+                </HBox>
+
+                <!-- Error Label -->
+                <Label fx:id="errorLabel" text="" styleClass="error-label" wrapText="true"/>
+
+                <!-- Sign In Button -->
+                <Button fx:id="loginBtn" text="Sign In" styleClass="btn-primary" prefHeight="44"
+                        maxWidth="Infinity" onAction="#onLogin"/>
+
+                <!-- OR Divider -->
+                <HBox alignment="CENTER" spacing="10">
+                    <Separator HBox.hgrow="ALWAYS"/>
+                    <Label text="OR" styleClass="or-divider"/>
+                    <Separator HBox.hgrow="ALWAYS"/>
+                </HBox>
+
+                <!-- Alternative Sign In -->
+                <Button text="Sign in with other" styleClass="btn-outline" prefHeight="44"
+                        maxWidth="Infinity"/>
+
+            </VBox>
+        </VBox>
+    </HBox>
+</AnchorPane>

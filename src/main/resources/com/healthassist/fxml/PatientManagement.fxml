@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.healthassist.controller.PatientController"
+            prefWidth="1200" prefHeight="800" styleClass="dashboard-root">
+    <HBox AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+
+        <!-- SIDEBAR -->
+        <VBox styleClass="sidebar" alignment="TOP_CENTER" spacing="8" prefWidth="70">
+            <padding><Insets top="20" bottom="20"/></padding>
+            <Label text="✚" styleClass="sidebar-logo"><font><Font size="24"/></font></Label>
+            <Region prefHeight="30"/>
+            <Button text="⌂" styleClass="sidebar-icon" onAction="#onNavHome"/>
+            <Button text="📅" styleClass="sidebar-icon" onAction="#onNavAppointments"/>
+            <Button text="👥" styleClass="sidebar-icon active" onAction="#onNavPatients"/>
+            <Button text="🩺" styleClass="sidebar-icon" onAction="#onNavDoctors"/>
+            <Button text="📋" styleClass="sidebar-icon" onAction="#onNavRecords"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Button text="⏻" styleClass="sidebar-icon" onAction="#onLogout"/>
+        </VBox>
+
+        <!-- MAIN CONTENT -->
+        <VBox HBox.hgrow="ALWAYS" spacing="16" styleClass="main-content">
+            <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" spacing="16">
+                <Label text="Patient Management" styleClass="page-title">
+                    <font><Font name="System Bold" size="24"/></font>
+                </Label>
+                <Region HBox.hgrow="ALWAYS"/>
+                <TextField fx:id="searchField" promptText="Search patients..." styleClass="search-field" prefWidth="250"/>
+                <Button text="Search" styleClass="btn-primary" onAction="#onSearch"/>
+                <Button fx:id="addPatientBtn" text="+ Add Patient" styleClass="btn-primary" onAction="#onAddPatient"/>
+            </HBox>
+
+            <!-- Patient Table -->
+            <VBox styleClass="card" VBox.vgrow="ALWAYS">
+                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                <TableView fx:id="patientTable" VBox.vgrow="ALWAYS" styleClass="patient-table">
+                    <columns>
+                        <TableColumn fx:id="colId" text="ID" prefWidth="60">
+                            <cellValueFactory><PropertyValueFactory property="id"/></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="colName" text="Full Name" prefWidth="180">
+                            <cellValueFactory><PropertyValueFactory property="fullName"/></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="colEmail" text="Email" prefWidth="200">
+                            <cellValueFactory><PropertyValueFactory property="email"/></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="colDob" text="Date of Birth" prefWidth="120">
+                            <cellValueFactory><PropertyValueFactory property="dateOfBirth"/></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="colBlood" text="Blood Type" prefWidth="90">
+                            <cellValueFactory><PropertyValueFactory property="bloodType"/></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="colPhone" text="Phone" prefWidth="130">
+                            <cellValueFactory><PropertyValueFactory property="phone"/></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="colActions" text="Actions" prefWidth="200"/>
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <!-- Health Records Panel (shows when viewing a patient's records) -->
+            <VBox fx:id="recordsPanel" styleClass="card" spacing="10" visible="false" managed="false" prefHeight="300">
+                <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label fx:id="recordsPanelTitle" text="Health Records" styleClass="card-title">
+                        <font><Font name="System Bold" size="16"/></font>
+                    </Label>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="✕ Close" styleClass="btn-outline" onAction="#onCloseRecords"/>
+                </HBox>
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="doctor-scroll">
+                    <VBox fx:id="recordsListBox" spacing="8"/>
+                </ScrollPane>
+            </VBox>
+        </VBox>
+    </HBox>
+</AnchorPane>

@@ -1,0 +1,103 @@
+/* ═══════════════════════════════════════════════════════════
+   Health Assistance System — Dashboard CSS
+   Extends global.css with dashboard-specific styles
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── APPOINTMENT ITEM ──────────────────────────────────── */
+.appointment-item {
+    -fx-background-color: #F8FAFC;
+    -fx-background-radius: 12;
+    -fx-padding: 12 14;
+    -fx-cursor: hand;
+}
+.appointment-item:hover {
+    -fx-background-color: #EEF2FF;
+}
+
+/* ── DOCTOR CARD (used in appointment/doctor pages) ──── */
+.doctor-card {
+    -fx-background-color: white;
+    -fx-background-radius: 14;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, rgba(45, 91, 227, 0.08), 14, 0, 0, 3);
+    -fx-cursor: hand;
+}
+.doctor-card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(45, 91, 227, 0.18), 20, 0, 0, 6);
+}
+
+/* ── CALENDAR CELLS ────────────────────────────────────── */
+.cal-today {
+    -fx-background-color: #2D5BE3;
+    -fx-text-fill: white;
+    -fx-background-radius: 16;
+    -fx-font-weight: bold;
+}
+
+.cal-selected {
+    -fx-background-color: #6C8EFF;
+    -fx-text-fill: white;
+    -fx-background-radius: 16;
+}
+
+/* ── TIME SLOT BUTTON ──────────────────────────────────── */
+.time-slot {
+    -fx-background-color: #F0F4FF;
+    -fx-text-fill: #2D5BE3;
+    -fx-background-radius: 8;
+    -fx-padding: 8 14;
+    -fx-cursor: hand;
+    -fx-font-size: 12px;
+    -fx-border-color: transparent;
+}
+.time-slot:hover {
+    -fx-background-color: #DDE5FF;
+}
+.time-slot.selected {
+    -fx-background-color: #2D5BE3;
+    -fx-text-fill: white;
+}
+
+/* ── PROGRESS BARS (Plan completion) ───────────────────── */
+.progress-bar .track {
+    -fx-background-color: #E2E8F0;
+    -fx-background-radius: 8;
+}
+.progress-bar .bar {
+    -fx-background-color: #2D5BE3;
+    -fx-background-radius: 8;
+}
+
+/* ── STAT CARD ACCENT BORDERS ──────────────────────────── */
+.stat-card-blue {
+    -fx-border-color: #2D5BE3;
+    -fx-border-width: 0 0 0 4;
+    -fx-border-radius: 16;
+}
+.stat-card-green {
+    -fx-border-color: #22C55E;
+    -fx-border-width: 0 0 0 4;
+    -fx-border-radius: 16;
+}
+.stat-card-orange {
+    -fx-border-color: #F59E0B;
+    -fx-border-width: 0 0 0 4;
+    -fx-border-radius: 16;
+}
+
+/* ── MINI PROFILE CARD IN SIDEBAR ──────────────────────── */
+.mini-profile {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-background-radius: 14;
+    -fx-padding: 12;
+}
+
+/* ── NOTIFICATION BADGE ────────────────────────────────── */
+.badge {
+    -fx-background-color: #EF4444;
+    -fx-text-fill: white;
+    -fx-background-radius: 10;
+    -fx-padding: 2 6;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.healthassist.controller.AppointmentController"
+            prefWidth="1200" prefHeight="800" styleClass="dashboard-root">
+    <HBox AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+
+        <!-- SIDEBAR -->
+        <VBox styleClass="sidebar" alignment="TOP_CENTER" spacing="8" prefWidth="70">
+            <padding><Insets top="20" bottom="20"/></padding>
+            <Label text="✚" styleClass="sidebar-logo"><font><Font size="24"/></font></Label>
+            <Region prefHeight="30"/>
+            <Button text="⌂" styleClass="sidebar-icon" onAction="#onNavHome"><tooltip><Tooltip text="Dashboard"/></tooltip></Button>
+            <Button text="📅" styleClass="sidebar-icon active" onAction="#onNavAppointments"><tooltip><Tooltip text="Appointments"/></tooltip></Button>
+            <Button text="👥" styleClass="sidebar-icon" onAction="#onNavPatients"><tooltip><Tooltip text="Patients"/></tooltip></Button>
+            <Button text="🩺" styleClass="sidebar-icon" onAction="#onNavDoctors"><tooltip><Tooltip text="Doctors"/></tooltip></Button>
+            <Button text="📋" styleClass="sidebar-icon" onAction="#onNavRecords"><tooltip><Tooltip text="Health Records"/></tooltip></Button>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Button text="⏻" styleClass="sidebar-icon" onAction="#onLogout"><tooltip><Tooltip text="Logout"/></tooltip></Button>
+        </VBox>
+
+        <!-- MAIN CONTENT: 3-column layout -->
+        <HBox HBox.hgrow="ALWAYS" spacing="16" styleClass="main-content">
+            <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+
+            <!-- LEFT: Booking Panel -->
+            <VBox styleClass="card" spacing="14" prefWidth="300" minWidth="280">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <Label text="Book Appointment" styleClass="card-title"><font><Font name="System Bold" size="16"/></font></Label>
+
+                <!-- Mini Calendar -->
+                <HBox alignment="CENTER" spacing="8">
+                    <Button text="◀" styleClass="cal-nav-btn" onAction="#onBookPrevMonth"/>
+                    <Label fx:id="bookMonthLabel" text="May 2026" styleClass="card-title" HBox.hgrow="ALWAYS" alignment="CENTER"/>
+                    <Button text="▶" styleClass="cal-nav-btn" onAction="#onBookNextMonth"/>
+                </HBox>
+                <GridPane fx:id="bookCalendarGrid" hgap="3" vgap="3" alignment="CENTER"/>
+
+                <Separator/>
+                <Label text="Available Time Slots" styleClass="field-label"/>
+                <FlowPane fx:id="timeSlotsPane" hgap="8" vgap="8"/>
+
+                <Separator/>
+                <Label text="Patient Concerns" styleClass="field-label"/>
+                <TextArea fx:id="concernsArea" promptText="Describe your concerns..." prefRowCount="3" styleClass="login-input" wrapText="true"/>
+
+                <Separator/>
+                <Label text="Select Patient" styleClass="field-label"/>
+                <ComboBox fx:id="patientCombo" promptText="Choose patient..." maxWidth="Infinity" styleClass="login-input"/>
+
+                <Button fx:id="bookBtn" text="Book Appointment" styleClass="btn-primary" maxWidth="Infinity" prefHeight="40" onAction="#onBookAppointment"/>
+            </VBox>
+
+            <!-- CENTER: Doctor List -->
+            <VBox styleClass="card" spacing="14" HBox.hgrow="ALWAYS" minWidth="350">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <Label text="Doctor List" styleClass="card-title"><font><Font name="System Bold" size="16"/></font></Label>
+                <HBox spacing="8">
+                    <TextField fx:id="doctorSearchField" promptText="Search doctors..." styleClass="search-field" HBox.hgrow="ALWAYS"/>
+                    <Button text="Search" styleClass="btn-primary" onAction="#onSearchDoctors"/>
+                </HBox>
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="doctor-scroll">
+                    <FlowPane fx:id="doctorCardsPane" hgap="12" vgap="12" prefWrapLength="400"/>
+                </ScrollPane>
+            </VBox>
+
+            <!-- RIGHT: Doctor Detail -->
+            <VBox fx:id="detailPanel" styleClass="card" spacing="14" prefWidth="280" minWidth="260" visible="false" managed="false">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <Label text="Doctor Details" styleClass="card-title"><font><Font name="System Bold" size="16"/></font></Label>
+                <StackPane prefHeight="80">
+                    <javafx.scene.shape.Circle radius="36" styleClass="profile-avatar-bg"/>
+                    <Label fx:id="detailAvatar" text="D" styleClass="avatar-text"><font><Font name="System Bold" size="24"/></font></Label>
+                </StackPane>
+                <Label fx:id="detailName" text="" styleClass="profile-name" alignment="CENTER" maxWidth="Infinity"><font><Font name="System Bold" size="18"/></font></Label>
+                <Label fx:id="detailSpec" text="" styleClass="stat-sub" alignment="CENTER" maxWidth="Infinity"/>
+                <Separator/>
+                <Label fx:id="detailHospital" text="" styleClass="profile-detail"/>
+                <Label fx:id="detailRate" text="" styleClass="profile-detail"/>
+                <Label fx:id="detailHours" text="" styleClass="profile-detail"/>
+                <Label fx:id="detailEmail" text="" styleClass="profile-detail"/>
+                <Region VBox.vgrow="ALWAYS"/>
+                <Button text="Select This Doctor" styleClass="btn-primary" maxWidth="Infinity" onAction="#onSelectDetailDoctor"/>
+            </VBox>
+        </HBox>
+    </HBox>
+</AnchorPane>

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.healthassist.controller.DashboardController"
+            prefWidth="1200" prefHeight="800" styleClass="dashboard-root">
+
+    <HBox AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+
+        <!-- ═══ SIDEBAR ═══ -->
+        <VBox styleClass="sidebar" alignment="TOP_CENTER" spacing="8" prefWidth="70">
+            <padding><Insets top="20" bottom="20"/></padding>
+
+            <!-- Logo -->
+            <Label text="✚" styleClass="sidebar-logo">
+                <font><Font size="24"/></font>
+            </Label>
+            <Region prefHeight="30"/>
+
+            <!-- Nav Icons -->
+            <Button fx:id="navHome" text="⌂" styleClass="sidebar-icon" onAction="#onNavHome">
+                <tooltip><Tooltip text="Dashboard"/></tooltip>
+            </Button>
+            <Button fx:id="navAppointments" text="📅" styleClass="sidebar-icon" onAction="#onNavAppointments">
+                <tooltip><Tooltip text="Appointments"/></tooltip>
+            </Button>
+            <Button fx:id="navPatients" text="👥" styleClass="sidebar-icon" onAction="#onNavPatients">
+                <tooltip><Tooltip text="Patients"/></tooltip>
+            </Button>
+            <Button fx:id="navDoctors" text="🩺" styleClass="sidebar-icon" onAction="#onNavDoctors">
+                <tooltip><Tooltip text="Doctors"/></tooltip>
+            </Button>
+            <Button fx:id="navRecords" text="📋" styleClass="sidebar-icon" onAction="#onNavRecords">
+                <tooltip><Tooltip text="Health Records"/></tooltip>
+            </Button>
+
+            <Region VBox.vgrow="ALWAYS"/>
+
+            <!-- Logout -->
+            <Button text="⏻" styleClass="sidebar-icon" onAction="#onLogout">
+                <tooltip><Tooltip text="Logout"/></tooltip>
+            </Button>
+        </VBox>
+
+        <!-- ═══ MAIN CONTENT ═══ -->
+        <ScrollPane fitToWidth="true" fitToHeight="true" HBox.hgrow="ALWAYS"
+                    styleClass="main-scroll" hbarPolicy="NEVER">
+            <VBox spacing="20" styleClass="main-content">
+                <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+
+                <!-- ① TOP BANNER CARD -->
+                <HBox styleClass="banner-card" alignment="CENTER_LEFT" spacing="20">
+                    <padding><Insets top="24" right="30" bottom="24" left="30"/></padding>
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label fx:id="greetingLabel" text="Good Day, Doctor!" styleClass="banner-title">
+                            <font><Font name="System Bold" size="24"/></font>
+                        </Label>
+                        <Label fx:id="dateLabel" text="" styleClass="banner-date">
+                            <font><Font size="14"/></font>
+                        </Label>
+                        <Label fx:id="clockLabel" text="" styleClass="banner-clock">
+                            <font><Font name="System Bold" size="20"/></font>
+                        </Label>
+                    </VBox>
+                    <!-- Doctor illustration placeholder -->
+                    <StackPane prefWidth="120" prefHeight="120">
+                        <Circle radius="50" styleClass="banner-avatar-bg"/>
+                        <Label text="👨‍⚕️" style="-fx-font-size: 48px;"/>
+                    </StackPane>
+                </HBox>
+
+                <!-- ② STAT CARDS ROW -->
+                <HBox spacing="16">
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="8">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        <Label text="Total Patients" styleClass="stat-label"/>
+                        <Label fx:id="statPatients" text="0" styleClass="stat-value">
+                            <font><Font name="System Bold" size="32"/></font>
+                        </Label>
+                        <Label text="Registered patients" styleClass="stat-sub"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="8">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        <Label text="Today's Appointments" styleClass="stat-label"/>
+                        <Label fx:id="statAppointments" text="0" styleClass="stat-value">
+                            <font><Font name="System Bold" size="32"/></font>
+                        </Label>
+                        <Label text="Scheduled for today" styleClass="stat-sub"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="8">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        <Label text="Total Doctors" styleClass="stat-label"/>
+                        <Label fx:id="statDoctors" text="0" styleClass="stat-value">
+                            <font><Font name="System Bold" size="32"/></font>
+                        </Label>
+                        <Label text="Active doctors" styleClass="stat-sub"/>
+                    </VBox>
+                </HBox>
+
+                <!-- ③ BOTTOM ROW -->
+                <HBox spacing="16">
+                    <!-- Scheduled Events (Pie Chart) -->
+                    <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="10">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        <Label text="Appointment Status Overview" styleClass="card-title">
+                            <font><Font name="System Bold" size="16"/></font>
+                        </Label>
+                        <PieChart fx:id="statusChart" prefHeight="250" legendVisible="true"
+                                  labelsVisible="false" styleClass="status-chart"/>
+                    </VBox>
+
+                    <!-- My Plans / Recent Appointments -->
+                    <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="10" minWidth="350">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        <Label text="Recent Appointments" styleClass="card-title">
+                            <font><Font name="System Bold" size="16"/></font>
+                        </Label>
+                        <VBox fx:id="recentAppointmentsBox" spacing="8"/>
+                    </VBox>
+                </HBox>
+
+                <!-- ④ PROFILE + CALENDAR ROW -->
+                <HBox spacing="16">
+                    <!-- Profile Card -->
+                    <VBox styleClass="card" spacing="12" minWidth="300" prefWidth="350">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        <Label text="MY PROFILE" styleClass="card-title">
+                            <font><Font name="System Bold" size="14"/></font>
+                        </Label>
+                        <HBox alignment="CENTER_LEFT" spacing="14">
+                            <StackPane prefWidth="60" prefHeight="60">
+                                <Circle radius="28" styleClass="profile-avatar-bg"/>
+                                <Label fx:id="avatarInitials" text="U" styleClass="avatar-text">
+                                    <font><Font name="System Bold" size="20"/></font>
+                                </Label>
+                            </StackPane>
+                            <VBox spacing="2">
+                                <Label fx:id="profileName" text="" styleClass="profile-name">
+                                    <font><Font name="System Bold" size="16"/></font>
+                                </Label>
+                                <Label fx:id="profileRole" text="" styleClass="profile-role"/>
+                            </VBox>
+                        </HBox>
+                        <Separator/>
+                        <Label fx:id="profileEmail" text="" styleClass="profile-detail"/>
+                        <Label fx:id="profileId" text="" styleClass="profile-detail"/>
+                    </VBox>
+
+                    <!-- Mini Calendar -->
+                    <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="10">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        <HBox alignment="CENTER" spacing="10">
+                            <Button text="◀" styleClass="cal-nav-btn" onAction="#onPrevMonth"/>
+                            <Label fx:id="calMonthLabel" text="May 2026" styleClass="card-title" HBox.hgrow="ALWAYS" alignment="CENTER">
+                                <font><Font name="System Bold" size="14"/></font>
+                            </Label>
+                            <Button text="▶" styleClass="cal-nav-btn" onAction="#onNextMonth"/>
+                        </HBox>
+                        <GridPane fx:id="calendarGrid" hgap="4" vgap="4" alignment="CENTER"/>
+                    </VBox>
+                </HBox>
+
+            </VBox>
+        </ScrollPane>
+    </HBox>
+</AnchorPane>
