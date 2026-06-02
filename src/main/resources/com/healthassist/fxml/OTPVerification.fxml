@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.healthassist.controller.OTPVerificationController"
+            prefWidth="1100" prefHeight="750"
+            styleClass="login-root">
+
+    <VBox alignment="CENTER" spacing="16" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+
+        <VBox alignment="CENTER" spacing="10" style="-fx-background-color: white; -fx-padding: 30; -fx-background-radius: 14; -fx-effect: dropshadow(gaussian, rgba(45,91,227,0.08), 12, 0, 0, 3);"
+              maxWidth="520">
+            <Label text="Verify OTP" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1E293B;"/>
+            <Label fx:id="destinationLabel" text="We sent a code to: " wrapText="true" textAlignment="CENTER"/>
+
+            <Label fx:id="errorLabel" text="" wrapText="true" style="-fx-text-fill: #EF4444;"/>
+
+            <Label text="Enter the 6-digit OTP" style="-fx-font-weight: bold;"/>
+            <TextField fx:id="otpField" promptText="e.g. 123456" maxWidth="320"/>
+
+            <Button fx:id="verifyBtn" text="Verify" styleClass="btn-primary" prefHeight="44" maxWidth="320"
+                    onAction="#onVerify"/>
+            <Label fx:id="hintLabel" text="For demo: OTP prints to console." style="-fx-text-fill: #64748B; -fx-font-size: 12;"/>
+
+            <Button text="Back to Sign Up" styleClass="btn-outline" prefHeight="38" maxWidth="320"
+                    onAction="#onBackToSignUp"/>
+        </VBox>
+    </VBox>
+</AnchorPane>
