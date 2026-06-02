@@ -226,6 +226,28 @@ public class UserDAO {
     }
 
     /**
+     * Mark a user verified after OTP verification.
+     */
+    public boolean markVerified(int userId, java.time.LocalDateTime verifiedAt) {
+        String sql = "UPDATE users SET is_verified = 1, verified_at = ? WHERE id = ?";
+        Connection conn = null;
+        try {
+            conn = DatabaseConfig.getInstance().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setTimestamp(1, java.sql.Timestamp.valueOf(verifiedAt));
+            ps.setInt(2, userId);
+            int rows = ps.executeUpdate();
+            ps.close();
+            return rows > 0;
+        } catch (SQLException e) {
+            System.err.println("UserDAO.markVerified error: " + e.getMessage());
+            return false;
+        } finally {
+            DatabaseConfig.getInstance().releaseConnection(conn);
+        }
+    }
+
+    /**
      * Map a ResultSet row to a User object.
      */
     private User mapRow(ResultSet rs) throws SQLException {
