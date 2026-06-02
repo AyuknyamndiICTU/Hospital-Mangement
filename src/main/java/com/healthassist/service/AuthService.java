@@ -1,8 +1,9 @@
 package com.healthassist.service;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import com.healthassist.dao.UserDAO;
 import com.healthassist.model.User;
-import org.mindrot.jbcrypt.BCrypt;
 
 /**
  * Authentication service handling login and password hashing.
@@ -27,6 +28,10 @@ public class AuthService {
 
         // Verify BCrypt hash
         if (BCrypt.checkpw(password, user.getPasswordHash())) {
+            // Enforce OTP verification: block login for unverified accounts
+            if (!user.isVerified()) {
+                return null;
+            }
             return user;
         }
 
