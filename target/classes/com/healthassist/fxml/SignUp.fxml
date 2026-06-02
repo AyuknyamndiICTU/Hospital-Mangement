@@ -12,7 +12,8 @@
             styleClass="login-root">
 
     <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
-        <VBox spacing="18" padding="24" alignment="TOP_CENTER">
+        <VBox spacing="18" alignment="TOP_CENTER">
+            <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
 
             <!-- Header -->
             <VBox spacing="6" alignment="CENTER">
