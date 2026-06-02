@@ -13,6 +13,10 @@ public class User {
     private String email;
     private String passwordHash;
     private Role role;
+
+    private boolean isVerified;
+    private LocalDateTime verifiedAt;
+
     private LocalDateTime createdAt;
 
     /**
@@ -56,11 +60,18 @@ public class User {
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
 
+    public boolean isVerified() { return isVerified; }
+    public void setVerified(boolean verified) { this.isVerified = verified; }
+
+    public LocalDateTime getVerifiedAt() { return verifiedAt; }
+    public void setVerifiedAt(LocalDateTime verifiedAt) { this.verifiedAt = verifiedAt; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     @Override
     public String toString() {
-        return "User{id=" + id + ", name='" + fullName + "', email='" + email + "', role=" + role + "}";
+        return "User{id=" + id + ", name='" + fullName + "', email='" + email + "', role=" + role +
+               ", isVerified=" + isVerified + ", verifiedAt=" + verifiedAt + "}";
     }
 }

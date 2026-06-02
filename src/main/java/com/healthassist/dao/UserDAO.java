@@ -1,11 +1,16 @@
 package com.healthassist.dao;
 
-import com.healthassist.config.DatabaseConfig;
-import com.healthassist.model.User;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.healthassist.config.DatabaseConfig;
+import com.healthassist.model.User;
 
 /**
  * Data Access Object for the users table.
@@ -230,10 +235,26 @@ public class UserDAO {
         user.setEmail(rs.getString("email"));
         user.setPasswordHash(rs.getString("password_hash"));
         user.setRole(User.Role.valueOf(rs.getString("role")));
-        Timestamp ts = rs.getTimestamp("created_at");
-        if (ts != null) {
-            user.setCreatedAt(ts.toLocalDateTime());
+
+        Timestamp createdTs = rs.getTimestamp("created_at");
+        if (createdTs != null) {
+            user.setCreatedAt(createdTs.toLocalDateTime());
         }
+
+        // OTP verification fields (may be added by schema evolution)
+        try {
+            user.setVerified(rs.getInt("is_verified") == 1);
+        } catch (SQLException ignored) {
+            user.setVerified(false);
+        }
+
+        try {
+            Timestamp verifiedTs = rs.getTimestamp("verified_at");
+            user.setVerifiedAt(verifiedTs != null ? verifiedTs.toLocalDateTime() : null);
+        } catch (SQLException ignored) {
+            user.setVerifiedAt(null);
+        }
+
         return user;
     }
 }
