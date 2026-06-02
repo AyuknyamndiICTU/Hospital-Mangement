@@ -1,5 +1,16 @@
 package com.healthassist.config;
 
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.healthassist.dao.AppointmentDAO;
 import com.healthassist.dao.DoctorDAO;
 import com.healthassist.dao.HealthRecordDAO;
@@ -10,18 +21,6 @@ import com.healthassist.model.HealthRecord;
 import com.healthassist.model.Patient;
 import com.healthassist.model.User;
 import com.healthassist.service.AuthService;
-
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Seeds the database with realistic mock data for testing and demonstration.
@@ -42,7 +41,15 @@ public class MockDataSeeder {
             DatabaseConfig.getInstance().releaseConnection(conn);
 
             if (count > 0) {
-                System.out.println("Mock data already exists — skipping mock data seed.");
+                System.out.println("Mock data already exists — ensuring existing demo accounts are verified.");
+
+                try (PreparedStatement upd = conn.prepareStatement(
+                    "UPDATE users SET is_verified = 1, verified_at = NOW() WHERE role IN ('DOCTOR','PATIENT')"
+                )) {
+                    upd.executeUpdate();
+                }
+
+                System.out.println("Existing demo doctors/patients verified.");
                 return;
             }
             
@@ -111,6 +118,10 @@ public class MockDataSeeder {
             doctors.add(d5);
 
             for (Doctor d : doctors) {
+                // Auto-verify demo doctors
+                d.setVerified(true);
+                d.setVerifiedAt(LocalDateTime.now());
+
                 int id = authService.register(d, defaultPassword);
                 d.setId(id);
                 insertDoctorRaw(d); // Direct insert into doctors table
@@ -198,6 +209,10 @@ public class MockDataSeeder {
             patients.add(p6);
 
             for (Patient p : patients) {
+                // Auto-verify demo patients
+                p.setVerified(true);
+                p.setVerifiedAt(LocalDateTime.now());
+
                 int id = authService.register(p, defaultPassword);
                 p.setId(id);
                 insertPatientRaw(p); // Direct insert into patients table

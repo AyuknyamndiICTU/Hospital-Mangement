@@ -1,7 +1,5 @@
 package com.healthassist.config;
 
-import org.mindrot.jbcrypt.BCrypt;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -9,6 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
+
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  * Seeds a default administrator account if none exists.
@@ -40,9 +40,9 @@ public class AdminSeeder {
                 // Hash password
                 String passwordHash = BCrypt.hashpw(password, BCrypt.gensalt(12));
 
-                // Insert admin user
+                // Insert admin user (auto-verified)
                 PreparedStatement insertStmt = conn.prepareStatement(
-                    "INSERT INTO users (full_name, email, password_hash, role) VALUES (?, ?, ?, 'ADMIN')"
+                    "INSERT INTO users (full_name, email, password_hash, role, is_verified, verified_at) VALUES (?, ?, ?, 'ADMIN', 1, NOW())"
                 );
                 insertStmt.setString(1, name);
                 insertStmt.setString(2, email);
@@ -52,7 +52,14 @@ public class AdminSeeder {
 
                 System.out.println("Default admin seeded: " + email);
             } else {
-                System.out.println("Admin user already exists — skipping seed.");
+                // If admin already exists, ensure OTP verification fields are set
+                try (PreparedStatement upd = conn.prepareStatement(
+                    "UPDATE users SET is_verified = 1, verified_at = NOW() WHERE role = 'ADMIN' AND email = ?"
+                )) {
+                    upd.setString(1, email);
+                    upd.executeUpdate();
+                }
+                System.out.println("Admin user already exists — ensured verified state.");
             }
         } catch (SQLException e) {
             System.err.println("Failed to seed admin: " + e.getMessage());
