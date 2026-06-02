@@ -123,6 +123,11 @@
                             <font><Font name="System Bold" size="16"/></font>
                         </Label>
                         <VBox fx:id="recentAppointmentsBox" spacing="8"/>
+                        <Separator/>
+                        <Label text="Health Monitoring" styleClass="card-title">
+                            <font><Font name="System Bold" size="16"/></font>
+                        </Label>
+                        <VBox fx:id="healthMonitoringBox" spacing="8"/>
                     </VBox>
                 </HBox>
 

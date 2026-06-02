@@ -34,6 +34,16 @@
     -fx-font-weight: bold;
 }
 
+/* ── CHARTS ────────────────────────────────────────────── */
+.status-chart .chart-pie {
+    -fx-border-color: white;
+    -fx-border-width: 2px;
+}
+.status-chart .chart-legend {
+    -fx-background-color: transparent;
+    -fx-padding: 10px;
+}
+
 .cal-selected {
     -fx-background-color: #6C8EFF;
     -fx-text-fill: white;

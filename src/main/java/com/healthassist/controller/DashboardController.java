@@ -1,5 +1,12 @@
 package com.healthassist.controller;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.format.TextStyle;
+import java.util.List;
+import java.util.Locale;
+
 import com.healthassist.dao.AppointmentDAO;
 import com.healthassist.dao.UserDAO;
 import com.healthassist.model.Appointment;
@@ -8,6 +15,7 @@ import com.healthassist.service.ReminderService;
 import com.healthassist.util.DateUtil;
 import com.healthassist.util.SceneNavigator;
 import com.healthassist.util.SessionManager;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -25,19 +33,13 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.YearMonth;
-import java.time.format.TextStyle;
-import java.util.List;
-import java.util.Locale;
-
 public class DashboardController {
 
     @FXML private Label greetingLabel, dateLabel, clockLabel;
     @FXML private Label statPatients, statAppointments, statDoctors;
     @FXML private PieChart statusChart;
     @FXML private VBox recentAppointmentsBox;
+    @FXML private VBox healthMonitoringBox;
     @FXML private Label avatarInitials, profileName, profileRole, profileEmail, profileId;
     @FXML private Label calMonthLabel;
     @FXML private GridPane calendarGrid;
@@ -45,7 +47,12 @@ public class DashboardController {
 
     private final AppointmentDAO appointmentDAO = new AppointmentDAO();
     private final UserDAO userDAO = new UserDAO();
+    private final com.healthassist.dao.HealthRecordDAO healthRecordDAO = new com.healthassist.dao.HealthRecordDAO();
     private ReminderService reminderService;
+    private Timeline realtimeDashboardTimeline;
+    private volatile boolean refreshInProgress = false;
+    private static final int DASHBOARD_REFRESH_SECONDS = 30;
+    private static final int HEALTH_MONITORING_ITEMS = 5;
     private YearMonth currentCalMonth;
 
     @FXML
@@ -68,8 +75,11 @@ public class DashboardController {
         currentCalMonth = YearMonth.now();
         renderCalendar();
 
-        // Load stats on background thread
+        // Load stats once (initial)
         loadStats();
+
+        // Start real-time dashboard refresh (multithreaded)
+        startRealtimeDashboardRefresh();
 
         // Apply role-based visibility
         applyRoleAccess(user);
@@ -139,12 +149,33 @@ public class DashboardController {
                     // Pie chart
                     statusChart.getData().clear();
                     if (pending + confirmed + cancelled + completed > 0) {
-                        if (pending > 0) statusChart.getData().add(new PieChart.Data("Pending (" + pending + ")", pending));
-                        if (confirmed > 0) statusChart.getData().add(new PieChart.Data("Confirmed (" + confirmed + ")", confirmed));
-                        if (completed > 0) statusChart.getData().add(new PieChart.Data("Completed (" + completed + ")", completed));
-                        if (cancelled > 0) statusChart.getData().add(new PieChart.Data("Cancelled (" + cancelled + ")", cancelled));
+                        PieChart.Data pData = new PieChart.Data("Pending (" + pending + ")", pending);
+                        if (pending > 0) {
+                            statusChart.getData().add(pData);
+                            applyPieColor(pData, "#F59E0B");
+                        }
+                        
+                        PieChart.Data cfData = new PieChart.Data("Confirmed (" + confirmed + ")", confirmed);
+                        if (confirmed > 0) {
+                            statusChart.getData().add(cfData);
+                            applyPieColor(cfData, "#2D5BE3");
+                        }
+                        
+                        PieChart.Data cpData = new PieChart.Data("Completed (" + completed + ")", completed);
+                        if (completed > 0) {
+                            statusChart.getData().add(cpData);
+                            applyPieColor(cpData, "#22C55E");
+                        }
+                        
+                        PieChart.Data cxData = new PieChart.Data("Cancelled (" + cancelled + ")", cancelled);
+                        if (cancelled > 0) {
+                            statusChart.getData().add(cxData);
+                            applyPieColor(cxData, "#EF4444");
+                        }
                     } else {
-                        statusChart.getData().add(new PieChart.Data("No Data", 1));
+                        PieChart.Data noData = new PieChart.Data("No Data", 1);
+                        statusChart.getData().add(noData);
+                        applyPieColor(noData, "#E2E8F0");
                     }
 
                     // Recent appointments
@@ -163,11 +194,145 @@ public class DashboardController {
         new Thread(task).start();
     }
 
+    private void startRealtimeDashboardRefresh() {
+        realtimeDashboardTimeline = new Timeline(new KeyFrame(Duration.seconds(DASHBOARD_REFRESH_SECONDS), e -> {
+            if (refreshInProgress) return;
+            refreshInProgress = true;
+
+            Task<Void> task = new Task<>() {
+                int patients, appointments, doctors;
+                int pending, confirmed, cancelled, completed;
+                List<Appointment> recent;
+                List<com.healthassist.model.HealthRecord> healthMonitoring;
+
+                @Override
+                protected Void call() {
+                    patients = userDAO.countByRole(User.Role.PATIENT);
+                    doctors = userDAO.countByRole(User.Role.DOCTOR);
+                    appointments = appointmentDAO.countToday();
+                    pending = appointmentDAO.countTodayByStatus(Appointment.Status.PENDING);
+                    confirmed = appointmentDAO.countTodayByStatus(Appointment.Status.CONFIRMED);
+                    cancelled = appointmentDAO.countTodayByStatus(Appointment.Status.CANCELLED);
+                    completed = appointmentDAO.countTodayByStatus(Appointment.Status.COMPLETED);
+
+                    com.healthassist.model.User user = SessionManager.getInstance().getCurrentUser();
+                    if (user != null && user.getRole() == com.healthassist.model.User.Role.DOCTOR) {
+                        recent = appointmentDAO.findByDoctor(user.getId());
+                    } else if (user != null && user.getRole() == com.healthassist.model.User.Role.PATIENT) {
+                        recent = appointmentDAO.findByPatient(user.getId());
+                    } else {
+                        recent = appointmentDAO.findAll();
+                    }
+                    if (recent != null && recent.size() > 5) recent = recent.subList(0, 5);
+
+                    // Health monitoring (Option A): latest health activity
+                    healthMonitoring = healthRecordDAO.findAll();
+                    if (healthMonitoring != null && healthMonitoring.size() > HEALTH_MONITORING_ITEMS) {
+                        healthMonitoring = healthMonitoring.subList(0, HEALTH_MONITORING_ITEMS);
+                    }
+
+                    return null;
+                }
+
+                @Override
+                protected void succeeded() {
+                    Platform.runLater(() -> {
+                        try {
+                            statPatients.setText(String.valueOf(patients));
+                            statAppointments.setText(String.valueOf(appointments));
+                            statDoctors.setText(String.valueOf(doctors));
+
+                            // Pie chart (today appointment status)
+                            statusChart.getData().clear();
+                            int total = pending + confirmed + cancelled + completed;
+                            if (total > 0) {
+                                PieChart.Data pData = new PieChart.Data("Pending (" + pending + ")", pending);
+                                if (pending > 0) {
+                                    statusChart.getData().add(pData);
+                                    applyPieColor(pData, "#F59E0B");
+                                }
+
+                                PieChart.Data cfData = new PieChart.Data("Confirmed (" + confirmed + ")", confirmed);
+                                if (confirmed > 0) {
+                                    statusChart.getData().add(cfData);
+                                    applyPieColor(cfData, "#2D5BE3");
+                                }
+
+                                PieChart.Data cpData = new PieChart.Data("Completed (" + completed + ")", completed);
+                                if (completed > 0) {
+                                    statusChart.getData().add(cpData);
+                                    applyPieColor(cpData, "#22C55E");
+                                }
+
+                                PieChart.Data cxData = new PieChart.Data("Cancelled (" + cancelled + ")", cancelled);
+                                if (cancelled > 0) {
+                                    statusChart.getData().add(cxData);
+                                    applyPieColor(cxData, "#EF4444");
+                                }
+                            } else {
+                                PieChart.Data noData = new PieChart.Data("No Data", 1);
+                                statusChart.getData().add(noData);
+                                applyPieColor(noData, "#E2E8F0");
+                            }
+
+                            // Recent appointments list
+                            recentAppointmentsBox.getChildren().clear();
+                            if (recent != null) {
+                                for (Appointment a : recent) {
+                                    recentAppointmentsBox.getChildren().add(createAppointmentItem(a));
+                                }
+                            }
+                            if (recentAppointmentsBox.getChildren().isEmpty()) {
+                                recentAppointmentsBox.getChildren().add(new Label("No recent appointments"));
+                            }
+
+                            // Health monitoring list (latest health activity)
+                            healthMonitoringBox.getChildren().clear();
+                            if (healthMonitoring != null && !healthMonitoring.isEmpty()) {
+                                for (com.healthassist.model.HealthRecord hr : healthMonitoring) {
+                                    Label line = new Label("🩺 " +
+                                            DateUtil.formatDate(hr.getVisitDate()) +
+                                            " — " +
+                                            (hr.getPatientName() != null ? hr.getPatientName() : ("Patient #" + hr.getPatientId())) +
+                                            " • " +
+                                            (hr.getDiagnosis() != null ? hr.getDiagnosis() : "N/A"));
+                                    line.setWrapText(true);
+                                    line.setStyle("-fx-text-fill: #1E293B; -fx-font-size: 12;");
+                                    healthMonitoringBox.getChildren().add(line);
+                                }
+                            } else {
+                                healthMonitoringBox.getChildren().add(new Label("No health monitoring updates"));
+                            }
+                        } finally {
+                            refreshInProgress = false;
+                        }
+                    });
+                }
+
+                @Override
+                protected void failed() {
+                    Platform.runLater(() -> {
+                        refreshInProgress = false;
+                        // Keep scheduler alive; log for debugging
+                        System.err.println("Realtime dashboard refresh failed.");
+                    });
+                }
+            };
+
+            new Thread(task).start();
+        }));
+        realtimeDashboardTimeline.setCycleCount(Timeline.INDEFINITE);
+        realtimeDashboardTimeline.play();
+    }
+
     private HBox createAppointmentItem(Appointment appt) {
         HBox box = new HBox(10);
         box.setAlignment(Pos.CENTER_LEFT);
         box.getStyleClass().add("appointment-item");
-        box.setStyle("-fx-background-color: #F8FAFC; -fx-background-radius: 10; -fx-padding: 12;");
+
+        box.setOnMouseClicked(e -> {
+            Platform.runLater(() -> SceneNavigator.navigateTo("AppointmentPage.fxml", box));
+        });
 
         String statusColor = switch (appt.getStatus()) {
             case PENDING -> "#F59E0B";
@@ -265,8 +430,29 @@ public class DashboardController {
 
     @FXML
     private void onLogout(javafx.event.ActionEvent e) {
+        // Stop background reminder polling
         if (reminderService != null) reminderService.stop();
+
+        // Stop real-time dashboard refresh
+        if (realtimeDashboardTimeline != null) {
+            realtimeDashboardTimeline.stop();
+        }
+        refreshInProgress = false;
+
         SessionManager.getInstance().logout();
         SceneNavigator.navigateTo("Login.fxml", e);
+    }
+
+    private void applyPieColor(PieChart.Data data, String color) {
+        javafx.scene.Node node = data.getNode();
+        if (node != null) {
+            node.setStyle("-fx-pie-color: " + color + ";");
+        } else {
+            data.nodeProperty().addListener((obs, oldNode, newNode) -> {
+                if (newNode != null) {
+                    newNode.setStyle("-fx-pie-color: " + color + ";");
+                }
+            });
+        }
     }
 }
