@@ -109,6 +109,12 @@
                 <Button text="Sign in with other" styleClass="btn-outline" prefHeight="44"
                         maxWidth="Infinity"/>
 
+                <HBox alignment="CENTER" spacing="10" style="-fx-padding: 6 0 0 0;">
+                    <Label text="New here?"/>
+                    <Button text="Go to Sign Up" styleClass="btn-outline" prefHeight="38"
+                            onAction="#onGoToSignUp"/>
+                </HBox>
+
             </VBox>
         </VBox>
     </HBox>

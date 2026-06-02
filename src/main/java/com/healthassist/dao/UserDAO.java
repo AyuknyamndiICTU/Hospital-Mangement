@@ -102,7 +102,7 @@ public class UserDAO {
      * Insert a new user. Returns the generated ID.
      */
     public int save(User user) {
-        String sql = "INSERT INTO users (full_name, email, password_hash, role) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO users (full_name, email, password_hash, role, is_verified, verified_at) VALUES (?, ?, ?, ?, ?, ?)";
         Connection conn = null;
         try {
             conn = DatabaseConfig.getInstance().getConnection();
@@ -111,6 +111,12 @@ public class UserDAO {
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPasswordHash());
             ps.setString(4, user.getRole().name());
+            ps.setInt(5, user.isVerified() ? 1 : 0);
+            if (user.getVerifiedAt() != null) {
+                ps.setTimestamp(6, Timestamp.valueOf(user.getVerifiedAt()));
+            } else {
+                ps.setTimestamp(6, null);
+            }
             ps.executeUpdate();
 
             ResultSet keys = ps.getGeneratedKeys();
