@@ -2,13 +2,17 @@ package com.healthassist.controller;
 
 import com.healthassist.model.User;
 import com.healthassist.service.AuthService;
-import com.healthassist.util.AlertUtil;
 import com.healthassist.util.DateUtil;
 import com.healthassist.util.SceneNavigator;
 import com.healthassist.util.SessionManager;
+
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 
 /**
  * Controller for the Login screen.
@@ -117,5 +121,10 @@ public class LoginController {
     private void showError(String message) {
         errorLabel.setText(message);
         errorLabel.setStyle("-fx-text-fill: #EF4444;");
+    }
+
+    @FXML
+    private void onGoToSignUp(javafx.event.ActionEvent event) {
+        SceneNavigator.navigateTo("SignUp.fxml", event);
     }
 }
