@@ -5,7 +5,6 @@ import java.util.List;
 import com.healthassist.dao.AppointmentDAO;
 import com.healthassist.model.Appointment;
 import com.healthassist.service.notifier.AppointmentReminderNotifier;
-import com.healthassist.service.notifier.JavaFxAppointmentReminderNotifier;
 import com.healthassist.util.AuditLogger;
 import com.healthassist.util.SessionManager;
 
@@ -20,12 +19,8 @@ public class ReminderService implements Runnable {
 
     private volatile boolean running = true;
 
-    public ReminderService() {
-        this(new JavaFxAppointmentReminderNotifier());
-    }
-
-    public ReminderService(AppointmentReminderNotifier reminderNotifier) {
-        this.reminderNotifier = reminderNotifier != null ? reminderNotifier : new JavaFxAppointmentReminderNotifier();
+    public ReminderService(AppointmentReminderNotifier notifier) {
+        this.reminderNotifier = notifier;
     }
 
     @Override
