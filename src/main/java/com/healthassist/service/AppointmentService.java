@@ -56,10 +56,12 @@ public class AppointmentService {
         LocalTime current = startTime;
         while (current.isBefore(endTime)) {
             LocalDateTime slotDateTime = LocalDateTime.of(date, current);
-            // Check if slot is available (no conflict)
-            if (!appointmentDAO.hasConflict(doctorId, slotDateTime)) {
+
+            // Check if slot is available (no conflict) AND far enough in the future
+            if (!appointmentDAO.hasConflict(doctorId, slotDateTime) && isAppointmentInFuture(slotDateTime)) {
                 slots.add(current);
             }
+
             current = current.plusHours(1);
         }
 
@@ -71,15 +73,35 @@ public class AppointmentService {
      * Returns the appointment ID on success, -1 on conflict or failure.
      */
     public int bookAppointment(Appointment appointment) {
-        if (appointment == null || appointment.getAppointmentDatetime() == null) return -1;
+        if (appointment == null || appointment.getAppointmentDatetime() == null) {
+            System.err.println("[AppointmentService] Reject: appointment or datetime is null");
+            return -1;
+        }
 
         // Data integrity hard rules (Phase 12)
-        if (!isAppointmentInFuture(appointment.getAppointmentDatetime())) return -1;
-        if (!isWithinWorkingHours(appointment.getDoctorId(), appointment.getAppointmentDatetime())) return -1;
+        if (!isAppointmentInFuture(appointment.getAppointmentDatetime())) {
+            System.err.println(
+                    "[AppointmentService] Reject: appointment not in future. " +
+                            "appt=" + appointment.getAppointmentDatetime() +
+                            ", now=" + LocalDateTime.now() +
+                            ", cutoff=" + LocalDateTime.now().plusMinutes(30)
+            );
+            return -1;
+        }
+
+        if (!isWithinWorkingHours(appointment.getDoctorId(), appointment.getAppointmentDatetime())) {
+            System.err.println(
+                    "[AppointmentService] Reject: outside working hours. " +
+                            "doctorId=" + appointment.getDoctorId() +
+                            ", appt=" + appointment.getAppointmentDatetime()
+            );
+            return -1;
+        }
 
         // Conflict check: no two appointments for same doctor in same 1-hour slot
         if (appointmentDAO.hasConflict(appointment.getDoctorId(), appointment.getAppointmentDatetime())) {
-            System.err.println("Appointment conflict detected for doctor " + appointment.getDoctorId());
+            System.err.println("[AppointmentService] Reject: appointment conflict. doctorId=" + appointment.getDoctorId()
+                    + ", appt=" + appointment.getAppointmentDatetime());
             return -1;
         }
 

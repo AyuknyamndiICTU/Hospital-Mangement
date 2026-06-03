@@ -40,6 +40,7 @@ public class DashboardController {
     @FXML private PieChart statusChart;
     @FXML private VBox recentAppointmentsBox;
     @FXML private VBox healthMonitoringBox;
+    @FXML private VBox statusLegendBox;
     @FXML private Label avatarInitials, profileName, profileRole, profileEmail, profileId;
     @FXML private Label calMonthLabel;
     @FXML private GridPane calendarGrid;
@@ -53,6 +54,10 @@ public class DashboardController {
     private volatile boolean refreshInProgress = false;
     private static final int DASHBOARD_REFRESH_SECONDS = 30;
     private static final int HEALTH_MONITORING_ITEMS = 5;
+
+    // Debug: helps verify the pie chart is using the expected live counts
+    private volatile boolean debugPrintedOnce = false;
+
     private YearMonth currentCalMonth;
 
     @FXML
@@ -122,10 +127,11 @@ public class DashboardController {
                 patients = userDAO.countByRole(User.Role.PATIENT);
                 doctors = userDAO.countByRole(User.Role.DOCTOR);
                 appointments = appointmentDAO.countToday();
-                pending = appointmentDAO.countTodayByStatus(Appointment.Status.PENDING);
-                confirmed = appointmentDAO.countTodayByStatus(Appointment.Status.CONFIRMED);
-                cancelled = appointmentDAO.countTodayByStatus(Appointment.Status.CANCELLED);
-                completed = appointmentDAO.countTodayByStatus(Appointment.Status.COMPLETED);
+                // Appointment Status Overview should reflect appointment statuses across the system (not only today).
+                pending = appointmentDAO.countByStatus(Appointment.Status.PENDING);
+                confirmed = appointmentDAO.countByStatus(Appointment.Status.CONFIRMED);
+                cancelled = appointmentDAO.countByStatus(Appointment.Status.CANCELLED);
+                completed = appointmentDAO.countByStatus(Appointment.Status.COMPLETED);
 
                 User user = SessionManager.getInstance().getCurrentUser();
                 if (user != null && user.getRole() == User.Role.DOCTOR) {
@@ -172,11 +178,20 @@ public class DashboardController {
                             statusChart.getData().add(cxData);
                             applyPieColor(cxData, "#EF4444");
                         }
+
+                        // Ensure legend text is visible/consistent after chart data update
+                        stylePieLegendText();
                     } else {
                         PieChart.Data noData = new PieChart.Data("No Data", 1);
                         statusChart.getData().add(noData);
                         applyPieColor(noData, "#E2E8F0");
+
+                        // Ensure legend text is visible/consistent after chart data update
+                        stylePieLegendText();
                     }
+
+                    // Custom legend (readable status names)
+                    renderStatusLegend(pending, confirmed, completed, cancelled);
 
                     // Recent appointments
                     recentAppointmentsBox.getChildren().clear();
@@ -210,10 +225,11 @@ public class DashboardController {
                     patients = userDAO.countByRole(User.Role.PATIENT);
                     doctors = userDAO.countByRole(User.Role.DOCTOR);
                     appointments = appointmentDAO.countToday();
-                    pending = appointmentDAO.countTodayByStatus(Appointment.Status.PENDING);
-                    confirmed = appointmentDAO.countTodayByStatus(Appointment.Status.CONFIRMED);
-                    cancelled = appointmentDAO.countTodayByStatus(Appointment.Status.CANCELLED);
-                    completed = appointmentDAO.countTodayByStatus(Appointment.Status.COMPLETED);
+                    // Real-time pie chart uses live counts across all appointment dates.
+                    pending = appointmentDAO.countByStatus(Appointment.Status.PENDING);
+                    confirmed = appointmentDAO.countByStatus(Appointment.Status.CONFIRMED);
+                    cancelled = appointmentDAO.countByStatus(Appointment.Status.CANCELLED);
+                    completed = appointmentDAO.countByStatus(Appointment.Status.COMPLETED);
 
                     com.healthassist.model.User user = SessionManager.getInstance().getCurrentUser();
                     if (user != null && user.getRole() == com.healthassist.model.User.Role.DOCTOR) {
@@ -242,7 +258,19 @@ public class DashboardController {
                             statAppointments.setText(String.valueOf(appointments));
                             statDoctors.setText(String.valueOf(doctors));
 
-                            // Pie chart (today appointment status)
+                            // Debug once: verify counts used by the pie chart
+                            if (!debugPrintedOnce) {
+                                System.out.println(
+                                        "[DashboardController] PieChart counts -> " +
+                                                "pending=" + pending +
+                                                ", confirmed=" + confirmed +
+                                                ", completed=" + completed +
+                                                ", cancelled=" + cancelled
+                                );
+                                debugPrintedOnce = true;
+                            }
+
+                            // Pie chart (live appointment status)
                             statusChart.getData().clear();
                             int total = pending + confirmed + cancelled + completed;
                             if (total > 0) {
@@ -269,11 +297,20 @@ public class DashboardController {
                                     statusChart.getData().add(cxData);
                                     applyPieColor(cxData, "#EF4444");
                                 }
+
+                                // Ensure legend text is visible/consistent after chart data update (kept as fallback)
+                                stylePieLegendText();
                             } else {
                                 PieChart.Data noData = new PieChart.Data("No Data", 1);
                                 statusChart.getData().add(noData);
                                 applyPieColor(noData, "#E2E8F0");
+
+                                // Ensure legend text is visible/consistent after chart data update (kept as fallback)
+                                stylePieLegendText();
                             }
+
+                            // Custom legend (readable status names)
+                            renderStatusLegend(pending, confirmed, completed, cancelled);
 
                             // Recent appointments list
                             recentAppointmentsBox.getChildren().clear();
@@ -451,6 +488,61 @@ public class DashboardController {
 
         SessionManager.getInstance().logout();
         SceneNavigator.navigateTo("Login.fxml", e);
+    }
+
+    private void stylePieLegendText() {
+        // PieChart legend nodes are created by the JavaFX skin; CSS selectors sometimes miss
+        // the internal Label/Text nodes. This makes the legend names/counts always visible.
+        for (javafx.scene.Node legendItem : statusChart.lookupAll(".chart-legend-item")) {
+            // Legend label is usually a Label inside the legend item
+            javafx.scene.Node labelNode = legendItem.lookup(".label");
+            if (labelNode != null) {
+                labelNode.setStyle("-fx-text-fill: #1E293B; -fx-font-size: 12px; -fx-font-weight: bold;");
+            }
+
+            javafx.scene.Node textNode = legendItem.lookup(".text");
+            if (textNode != null) {
+                textNode.setStyle("-fx-fill: #1E293B; -fx-font-size: 12px; -fx-font-weight: bold;");
+            }
+        }
+    }
+
+    private void renderStatusLegend(int pending, int confirmed, int completed, int cancelled) {
+        if (statusLegendBox == null) return;
+
+        statusLegendBox.getChildren().clear();
+
+        // Only show rows for statuses that actually exist (count > 0), to keep it clean.
+        // But if all counts are 0, show a single "No Data".
+        int total = pending + confirmed + cancelled + completed;
+        if (total <= 0) {
+            Label row = new Label("No Appointment Status Data");
+            row.setStyle("-fx-text-fill: #64748B; -fx-font-size: 12px; -fx-font-weight: bold;");
+            statusLegendBox.getChildren().add(row);
+            return;
+        }
+
+        addLegendRow("Pending", pending, "#F59E0B");
+        addLegendRow("Confirmed", confirmed, "#2D5BE3");
+        addLegendRow("Completed", completed, "#22C55E");
+        addLegendRow("Cancelled", cancelled, "#EF4444");
+    }
+
+    private void addLegendRow(String label, int count, String color) {
+        if (count <= 0) return;
+        if (statusLegendBox == null) return;
+
+        HBox row = new HBox(10);
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        Label dot = new Label("●");
+        dot.setStyle("-fx-text-fill: " + color + "; -fx-font-size: 14;");
+
+        Label text = new Label(label + " (" + count + ")");
+        text.setStyle("-fx-text-fill: #1E293B; -fx-font-size: 12px; -fx-font-weight: bold;");
+
+        row.getChildren().addAll(dot, text);
+        statusLegendBox.getChildren().add(row);
     }
 
     private void applyPieColor(PieChart.Data data, String color) {

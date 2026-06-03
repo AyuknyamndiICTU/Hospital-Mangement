@@ -116,8 +116,9 @@
                         <Label text="Appointment Status Overview" styleClass="card-title">
                             <font><Font name="System Bold" size="16"/></font>
                         </Label>
-                        <PieChart fx:id="statusChart" prefHeight="250" legendVisible="true"
+                        <PieChart fx:id="statusChart" prefHeight="250" legendVisible="false"
                                   labelsVisible="false" styleClass="status-chart"/>
+                        <VBox fx:id="statusLegendBox" spacing="8"/>
                     </VBox>
 
                     <!-- My Plans / Recent Appointments -->

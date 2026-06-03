@@ -44,6 +44,17 @@
     -fx-padding: 10px;
 }
 
+/* Force legend text to be readable (prevents “colored squares only” look) */
+.status-chart .chart-legend-item {
+    -fx-opacity: 1;
+}
+.status-chart .chart-legend-item .label,
+.status-chart .chart-legend-item .text {
+    -fx-text-fill: #1E293B;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
 .cal-selected {
     -fx-background-color: #6C8EFF;
     -fx-text-fill: white;

@@ -118,7 +118,10 @@ public class AppointmentDAO {
         if (actor == null || actor.getRole() == null) {
             throw new UnauthorizedActionException("Role null cannot perform this action.");
         }
-        if (actor.getRole() != User.Role.ADMIN && actor.getRole() != User.Role.DOCTOR) {
+        // Appointment booking is allowed for PATIENTs (RBAC enforced in AppointmentService.bookAppointment(User,...)).
+        if (actor.getRole() != User.Role.ADMIN
+                && actor.getRole() != User.Role.DOCTOR
+                && actor.getRole() != User.Role.PATIENT) {
             throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
         }
         return save(appt);
@@ -281,6 +284,23 @@ public class AppointmentDAO {
             rs.close(); ps.close();
         } catch (SQLException e) {
             System.err.println("AppointmentDAO.countTodayByStatus error: " + e.getMessage());
+        } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
+        return 0;
+    }
+
+    /** Count appointments by status (all dates) for live dashboard charts */
+    public int countByStatus(Appointment.Status status) {
+        String sql = "SELECT COUNT(*) FROM appointments WHERE status = ?";
+        Connection conn = null;
+        try {
+            conn = DatabaseConfig.getInstance().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, status.name());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) { int count = rs.getInt(1); rs.close(); ps.close(); return count; }
+            rs.close(); ps.close();
+        } catch (SQLException e) {
+            System.err.println("AppointmentDAO.countByStatus error: " + e.getMessage());
         } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
         return 0;
     }
