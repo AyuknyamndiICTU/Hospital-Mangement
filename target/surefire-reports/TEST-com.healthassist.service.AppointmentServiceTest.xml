@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.healthassist.service.AppointmentServiceTest" time="0.068" tests="14" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="17"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+    <property name="sun.jnu.encoding" value="Cp1252"/>
+    <property name="java.class.path" value="C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\target\test-classes;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-controls\21\javafx-controls-21.jar;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-graphics\21\javafx-graphics-21.jar;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-base\21\javafx-base-21.jar;C:\Users\bnyam\.m2\repository\org\junit\jupiter\junit-jupiter\5.10.2\junit-jupiter-5.10.2.jar;C:\Users\bnyam\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.10.2\junit-jupiter-api-5.10.2.jar;C:\Users\bnyam\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\bnyam\.m2\repository\org\junit\platform\junit-platform-commons\1.10.2\junit-platform-commons-1.10.2.jar;C:\Users\bnyam\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\bnyam\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.10.2\junit-jupiter-params-5.10.2.jar;C:\Users\bnyam\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.10.2\junit-jupiter-engine-5.10.2.jar;C:\Users\bnyam\.m2\repository\org\junit\platform\junit-platform-engine\1.10.2\junit-platform-engine-1.10.2.jar;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-fxml\21\javafx-fxml-21.jar;C:\Users\bnyam\.m2\repository\com\mysql\mysql-connector-j\8.3.0\mysql-connector-j-8.3.0.jar;C:\Users\bnyam\.m2\repository\com\google\protobuf\protobuf-java\3.25.1\protobuf-java-3.25.1.jar;C:\Users\bnyam\.m2\repository\de\jensd\fontawesomefx-fontawesome\4.7.0-9.1.2\fontawesomefx-fontawesome-4.7.0-9.1.2.jar;C:\Users\bnyam\.m2\repository\de\jensd\fontawesomefx-commons\9.1.2\fontawesomefx-commons-9.1.2.jar;"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="user.variant" value=""/>
+    <property name="java.vendor.url" value="https://java.oracle.com/"/>
+    <property name="user.timezone" value="Africa/Lagos"/>
+    <property name="os.name" value="Windows 11"/>
+    <property name="java.vm.specification.version" value="17"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-17\bin"/>
+    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter C:\Users\bnyam\AppData\Local\Temp\surefire14034411893816990280 2026-06-03T10-15-44_631-jvmRun1 surefire-20260603101545141_1tmp surefire_0-20260603101545141_2tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\target\test-classes;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-controls\21\javafx-controls-21.jar;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-graphics\21\javafx-graphics-21.jar;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-base\21\javafx-base-21.jar;C:\Users\bnyam\.m2\repository\org\junit\jupiter\junit-jupiter\5.10.2\junit-jupiter-5.10.2.jar;C:\Users\bnyam\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.10.2\junit-jupiter-api-5.10.2.jar;C:\Users\bnyam\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\bnyam\.m2\repository\org\junit\platform\junit-platform-commons\1.10.2\junit-platform-commons-1.10.2.jar;C:\Users\bnyam\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\bnyam\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.10.2\junit-jupiter-params-5.10.2.jar;C:\Users\bnyam\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.10.2\junit-jupiter-engine-5.10.2.jar;C:\Users\bnyam\.m2\repository\org\junit\platform\junit-platform-engine\1.10.2\junit-platform-engine-1.10.2.jar;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-fxml\21\javafx-fxml-21.jar;C:\Users\bnyam\.m2\repository\com\mysql\mysql-connector-j\8.3.0\mysql-connector-j-8.3.0.jar;C:\Users\bnyam\.m2\repository\com\google\protobuf\protobuf-java\3.25.1\protobuf-java-3.25.1.jar;C:\Users\bnyam\.m2\repository\de\jensd\fontawesomefx-fontawesome\4.7.0-9.1.2\fontawesomefx-fontawesome-4.7.0-9.1.2.jar;C:\Users\bnyam\.m2\repository\de\jensd\fontawesomefx-commons\9.1.2\fontawesomefx-commons-9.1.2.jar;"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="C:\Users\bnyam"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="jdk.module.path" value="C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\target\classes;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-controls\21\javafx-controls-21-win.jar;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-graphics\21\javafx-graphics-21-win.jar;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-base\21\javafx-base-21-win.jar;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-fxml\21\javafx-fxml-21-win.jar;C:\Users\bnyam\.m2\repository\org\mindrot\jbcrypt\0.4\jbcrypt-0.4.jar"/>
+    <property name="java.version.date" value="2024-07-16"/>
+    <property name="java.home" value="C:\Program Files\Java\jdk-17"/>
+    <property name="file.separator" value="\"/>
+    <property name="basedir" value="C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="surefire.real.class.path" value="C:\Users\bnyam\.m2\repository\org\apache\maven\surefire\surefire-booter\3.2.5\surefire-booter-3.2.5.jar;C:\Users\bnyam\.m2\repository\org\apache\maven\surefire\surefire-api\3.2.5\surefire-api-3.2.5.jar;C:\Users\bnyam\.m2\repository\org\apache\maven\surefire\surefire-logger-api\3.2.5\surefire-logger-api-3.2.5.jar;C:\Users\bnyam\.m2\repository\org\apache\maven\surefire\surefire-shared-utils\3.2.5\surefire-shared-utils-3.2.5.jar;C:\Users\bnyam\.m2\repository\org\apache\maven\surefire\surefire-extensions-spi\3.2.5\surefire-extensions-spi-3.2.5.jar;C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\target\test-classes;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-controls\21\javafx-controls-21.jar;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-graphics\21\javafx-graphics-21.jar;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-base\21\javafx-base-21.jar;C:\Users\bnyam\.m2\repository\org\junit\jupiter\junit-jupiter\5.10.2\junit-jupiter-5.10.2.jar;C:\Users\bnyam\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.10.2\junit-jupiter-api-5.10.2.jar;C:\Users\bnyam\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\bnyam\.m2\repository\org\junit\platform\junit-platform-commons\1.10.2\junit-platform-commons-1.10.2.jar;C:\Users\bnyam\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\bnyam\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.10.2\junit-jupiter-params-5.10.2.jar;C:\Users\bnyam\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.10.2\junit-jupiter-engine-5.10.2.jar;C:\Users\bnyam\.m2\repository\org\junit\platform\junit-platform-engine\1.10.2\junit-platform-engine-1.10.2.jar;C:\Users\bnyam\.m2\repository\org\openjfx\javafx-fxml\21\javafx-fxml-21.jar;C:\Users\bnyam\.m2\repository\com\mysql\mysql-connector-j\8.3.0\mysql-connector-j-8.3.0.jar;C:\Users\bnyam\.m2\repository\com\google\protobuf\protobuf-java\3.25.1\protobuf-java-3.25.1.jar;C:\Users\bnyam\.m2\repository\de\jensd\fontawesomefx-fontawesome\4.7.0-9.1.2\fontawesomefx-fontawesome-4.7.0-9.1.2.jar;C:\Users\bnyam\.m2\repository\de\jensd\fontawesomefx-commons\9.1.2\fontawesomefx-commons-9.1.2.jar;C:\Users\bnyam\.m2\repository\org\apache\maven\surefire\surefire-junit-platform\3.2.5\surefire-junit-platform-3.2.5.jar;C:\Users\bnyam\.m2\repository\org\apache\maven\surefire\common-java5\3.2.5\common-java5-3.2.5.jar;C:\Users\bnyam\.m2\repository\org\junit\platform\junit-platform-launcher\1.10.2\junit-platform-launcher-1.10.2.jar"/>
+    <property name="user.script" value=""/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="17.0.12+8-LTS-286"/>
+    <property name="user.name" value="bnyam"/>
+    <property name="path.separator" value=";"/>
+    <property name="os.version" value="10.0"/>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="file.encoding" value="Cp1252"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="localRepository" value="C:\Users\bnyam\.m2\repository"/>
+    <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
+    <property name="java.io.tmpdir" value="C:\Users\bnyam\AppData\Local\Temp\"/>
+    <property name="java.version" value="17.0.12"/>
+    <property name="user.dir" value="C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="native.encoding" value="Cp1252"/>
+    <property name="java.library.path" value="C:\Program Files\Java\jdk-17\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Program Files\WindowsApps\Microsoft.PowerShell_7.6.2.0_x64__8wekyb3d8bbwe;c:\Users\bnyam\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\debugCommand;c:\Users\bnyam\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\copilotCli;C:\Program Files\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;%JAVA_HOME%\bin;C:\Program Files\dotnet\;C:\Program Files (x86)\dotnet\;C:\Program Files\nodejs\;C:\Program Files\Git\cmd;C:\Users\bnyam\.local\bin\claude.exe;C:\Users\bnyam\.local\bin;;C:\Program Files\Docker\Docker\resources\bin;C:\Users\bnyam\AppData\Local\Programs\Python\Launcher\;C:\Users\bnyam\AppData\Local\UniGetUI\Chocolatey\bin;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;C:\Users\bnyam\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\bnyam\AppData\Local\Programs\Python\Python312\;C:\Users\bnyam\AppData\Local\Microsoft\WindowsApps;C:\Program Files\Java\jdk-17\bin;C:\Program Files\JetBrains\IntelliJ IDEA 2026.1\bin;C:\Users\bnyam\AppData\Local\Programs\Antigravity\bin;C:\Users\bnyam\AppData\Roaming\npm;C:\Users\bnyam\AppData\Local\GitHubDesktop\bin;C:\Users\bnyam\AppData\Local\Programs\Ollama;C:\Users\bnyam\.local\bin\claude.exe;C:\Users\bnyam\.local\bin;C:\Users\bnyam\AppData\Local\Programs\Microsoft VS Code\bin;c:\Users\bnyam\.vscode\extensions\vscjava.vscode-java-debug-0.59.0\bundled\scripts\noConfigScripts;."/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.version" value="17.0.12+8-LTS-286"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="61.0"/>
+  </properties>
+  <testcase name="buildAuditDetails_blankReasonOmitted" classname="com.healthassist.service.AppointmentServiceTest" time="0.015"/>
+  <testcase name="buildAuditDetails_nullStatusesRenderQuestionMark" classname="com.healthassist.service.AppointmentServiceTest" time="0.002"/>
+  <testcase name="isAppointmentInFuture_oneSecondFuture_rejected" classname="com.healthassist.service.AppointmentServiceTest" time="0.003"/>
+  <testcase name="isAppointmentInFuture_pastDatetime_rejected" classname="com.healthassist.service.AppointmentServiceTest" time="0.004"/>
+  <testcase name="canTransition_fromTerminalStates_rejected" classname="com.healthassist.service.AppointmentServiceTest" time="0.002"/>
+  <testcase name="canTransition_pendingToCompleted_rejected" classname="com.healthassist.service.AppointmentServiceTest" time="0.0"/>
+  <testcase name="canTransition_confirmedToCancelled_allowed" classname="com.healthassist.service.AppointmentServiceTest" time="0.003"/>
+  <testcase name="isAppointmentInFuture_futureDatetime_accepted" classname="com.healthassist.service.AppointmentServiceTest" time="0.001"/>
+  <testcase name="canTransition_pendingToCancelled_allowed" classname="com.healthassist.service.AppointmentServiceTest" time="0.001"/>
+  <testcase name="buildAuditDetails_capturesStatusDiff" classname="com.healthassist.service.AppointmentServiceTest" time="0.0"/>
+  <testcase name="canTransition_nullInputs_rejected" classname="com.healthassist.service.AppointmentServiceTest" time="0.001"/>
+  <testcase name="canTransition_confirmedToCompleted_allowed" classname="com.healthassist.service.AppointmentServiceTest" time="0.001"/>
+  <testcase name="buildAuditDetails_includesReasonWhenProvided" classname="com.healthassist.service.AppointmentServiceTest" time="0.001"/>
+  <testcase name="canTransition_pendingToConfirmed_allowed" classname="com.healthassist.service.AppointmentServiceTest" time="0.0"/>
+</testsuite>
