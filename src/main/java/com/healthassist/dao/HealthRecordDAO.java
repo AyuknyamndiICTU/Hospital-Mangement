@@ -1,10 +1,17 @@
 package com.healthassist.dao;
 
-import com.healthassist.config.DatabaseConfig;
-import com.healthassist.model.HealthRecord;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.healthassist.config.DatabaseConfig;
+import com.healthassist.model.HealthRecord;
+import com.healthassist.model.User;
 
 public class HealthRecordDAO {
 
@@ -62,6 +69,19 @@ public class HealthRecordDAO {
         return -1;
     }
 
+    /**
+     * RBAC-aware save:
+     * - PATIENT: denied
+     * - DOCTOR: allowed only when record.doctorId == actor.id
+     * - ADMIN: allowed
+     */
+    public int save(HealthRecord record, User actor) {
+        if (actor == null || record == null) return -1;
+        if (actor.getRole() == User.Role.PATIENT) return -1;
+        if (actor.getRole() == User.Role.DOCTOR && record.getDoctorId() != actor.getId()) return -1;
+        return save(record);
+    }
+
     public boolean update(HealthRecord record) {
         String sql = "UPDATE health_records SET diagnosis = ?, prescription = ?, visit_date = ? WHERE id = ?";
         Connection conn = null;
@@ -80,6 +100,19 @@ public class HealthRecordDAO {
         return false;
     }
 
+    /**
+     * RBAC-aware update:
+     * - PATIENT: denied
+     * - DOCTOR: allowed only when record.doctorId == actor.id
+     * - ADMIN: allowed
+     */
+    public boolean update(HealthRecord record, User actor) {
+        if (actor == null || record == null) return false;
+        if (actor.getRole() == User.Role.PATIENT) return false;
+        if (actor.getRole() == User.Role.DOCTOR && record.getDoctorId() != actor.getId()) return false;
+        return update(record);
+    }
+
     public boolean delete(int id) {
         String sql = "DELETE FROM health_records WHERE id = ?";
         Connection conn = null;
@@ -93,6 +126,48 @@ public class HealthRecordDAO {
             System.err.println("HealthRecordDAO.delete error: " + e.getMessage());
         } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
         return false;
+    }
+
+    /**
+     * RBAC-aware delete:
+     * - PATIENT: denied
+     * - DOCTOR: allowed only when the record's doctor_id == actor.id
+     * - ADMIN: allowed
+     */
+    public boolean delete(int id, User actor) {
+        if (actor == null) return false;
+        if (actor.getRole() == User.Role.PATIENT) return false;
+
+        if (actor.getRole() == User.Role.DOCTOR) {
+            HealthRecord existing = findDoctorIdByRecordId(id);
+            if (existing == null) return false;
+            if (existing.getDoctorId() != actor.getId()) return false;
+        }
+
+        return delete(id);
+    }
+
+    private HealthRecord findDoctorIdByRecordId(int id) {
+        String sql = "SELECT id, doctor_id FROM health_records WHERE id = ?";
+        Connection conn = null;
+        try {
+            conn = DatabaseConfig.getInstance().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                HealthRecord hr = new HealthRecord();
+                hr.setId(rs.getInt("id"));
+                hr.setDoctorId(rs.getInt("doctor_id"));
+                rs.close();
+                ps.close();
+                return hr;
+            }
+            rs.close(); ps.close();
+        } catch (SQLException e) {
+            System.err.println("HealthRecordDAO.findDoctorIdByRecordId error: " + e.getMessage());
+        } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
+        return null;
     }
 
     private HealthRecord mapRow(ResultSet rs) throws SQLException {
