@@ -182,16 +182,16 @@ _This plan is structured into phases you can follow anytime. Each phase has clea
 
 ## Phase 9 — EHR access control: doctor scope + patient scope + appointment linkage constraints  
 ### Tasks  
-- [ ] Implement a secure “EHR write” rule:  
-  - [ ] Doctor can create/edit health records only for visits tied to an appointment they handled (or for their own patients per appointment history).  
-  - [ ] Patient can view only their own records (no edit/delete).  
-- [ ] Update `HealthRecordController` editing/deleting authorization (service-guarded).  
+- [x] Implement a secure “EHR write” rule:  
+  - [x] Doctor can create/edit health records only for visits tied to an appointment they handled (or for their own patients per appointment history).  
+  - [x] Patient can view only their own records (no edit/delete).  
+- [x] Update `HealthRecordController` editing/deleting authorization (service-guarded).  
 - [ ] Add DAO methods like:  
   - [ ] `findByPatientAndDoctor(patientId, doctorId)`  
   - [ ] `saveForAppointment(appointmentId, ...)` (preferred)  
 
 ### Exit criteria  
-- [ ] Doctors cannot edit records for other doctors’ patients (and patients are view-only)  
+- [x] Doctors cannot edit records for other doctors’ patients (and patients are view-only)  
 
 ---  
 
