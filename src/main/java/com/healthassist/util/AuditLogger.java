@@ -26,7 +26,7 @@ public final class AuditLogger {
         }
     }
 
-    private static String toJson(String... pairs) {
+    public static String toJson(String... pairs) {
         StringBuilder sb = new StringBuilder("{");
         for (int i = 0; i < pairs.length - 1; i += 2) {
             if (i > 0) sb.append(",");
