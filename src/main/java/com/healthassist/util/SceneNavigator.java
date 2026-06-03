@@ -1,6 +1,7 @@
 package com.healthassist.util;
 
-import com.healthassist.MainApp;
+import java.io.IOException;
+
 import javafx.animation.FadeTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -9,8 +10,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
-import java.io.IOException;
 
 /**
  * Utility for navigating between FXML screens with fade transitions.
@@ -101,11 +100,11 @@ public class SceneNavigator {
      * Add screen-specific CSS based on FXML filename.
      */
     private static void addScreenCss(String fxmlPath, Scene scene) {
-        if (fxmlPath.contains("Login")) {
+        if (fxmlPath.contains("Login") || fxmlPath.contains("SignUp")) {
             var loginCss = SceneNavigator.class.getResource("/com/healthassist/styles/login.css");
             if (loginCss != null) scene.getStylesheets().add(loginCss.toExternalForm());
         } else {
-            // All non-Login screens use dashboard.css styles
+            // All non-Login/non-SignUp screens use dashboard.css styles
             var dashCss = SceneNavigator.class.getResource("/com/healthassist/styles/dashboard.css");
             if (dashCss != null) scene.getStylesheets().add(dashCss.toExternalForm());
         }
