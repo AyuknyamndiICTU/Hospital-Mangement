@@ -61,6 +61,10 @@ public class MockDataSeeder {
             AppointmentDAO appointmentDAO = new AppointmentDAO();
             HealthRecordDAO healthRecordDAO = new HealthRecordDAO();
 
+            User adminActor = new User();
+            adminActor.setId(1);
+            adminActor.setRole(User.Role.ADMIN);
+
             String defaultPassword = "Password123";
 
             // ─── 1. Seed Doctors ───
@@ -136,7 +140,7 @@ public class MockDataSeeder {
                     slot.put("end", "17:00");
                     schedule.add(slot);
                 }
-                doctorDAO.saveSchedule(id, schedule);
+                doctorDAO.saveSchedule(id, schedule, adminActor);
             }
 
             // ─── 2. Seed Patients ───
@@ -225,7 +229,7 @@ public class MockDataSeeder {
             hr1.setVisitDate(LocalDate.now().minusMonths(1));
             hr1.setDiagnosis("Severe Malaria (Plasmodium falciparum positive). Patient presented with high fever, chills, and fatigue.");
             hr1.setPrescription("Artemether-Lumefantrine 80/480mg twice daily for 3 days. Paracetamol 1000mg for fever.");
-            healthRecordDAO.save(hr1);
+            healthRecordDAO.save(hr1, adminActor);
 
             HealthRecord hr2 = new HealthRecord();
             hr2.setPatientId(patients.get(1).getId());
@@ -233,7 +237,7 @@ public class MockDataSeeder {
             hr2.setVisitDate(LocalDate.now().minusWeeks(2));
             hr2.setDiagnosis("Typhoid Fever (Widal test positive). Abdominal pain and sustained fever.");
             hr2.setPrescription("Ciprofloxacin 500mg twice daily for 7 days. Advised on clean water consumption.");
-            healthRecordDAO.save(hr2);
+            healthRecordDAO.save(hr2, adminActor);
             
             HealthRecord hr3 = new HealthRecord();
             hr3.setPatientId(patients.get(2).getId());
@@ -241,7 +245,7 @@ public class MockDataSeeder {
             hr3.setVisitDate(LocalDate.now().minusDays(10));
             hr3.setDiagnosis("Fractured tibia following a motorcycle (Okada) accident. X-ray confirms clean break.");
             hr3.setPrescription("Cast applied. Ibuprofen 400mg for pain. Scheduled for follow-up in 4 weeks.");
-            healthRecordDAO.save(hr3);
+            healthRecordDAO.save(hr3, adminActor);
 
             HealthRecord hr4 = new HealthRecord();
             hr4.setPatientId(patients.get(3).getId());
@@ -249,7 +253,7 @@ public class MockDataSeeder {
             hr4.setVisitDate(LocalDate.now().minusDays(3));
             hr4.setDiagnosis("Acute Respiratory Infection. Mild cough and congestion.");
             hr4.setPrescription("Amoxicillin 250mg. Vitamin C syrup. Plenty of fluids.");
-            healthRecordDAO.save(hr4);
+            healthRecordDAO.save(hr4, adminActor);
 
             HealthRecord hr5 = new HealthRecord();
             hr5.setPatientId(patients.get(4).getId());
@@ -257,7 +261,7 @@ public class MockDataSeeder {
             hr5.setVisitDate(LocalDate.now().minusMonths(3));
             hr5.setDiagnosis("Cholera suspected due to severe dehydration and diarrhea. Confirmed by stool culture.");
             hr5.setPrescription("Oral Rehydration Salts (ORS) and IV fluids (Ringer's Lactate). Doxycycline 300mg single dose.");
-            healthRecordDAO.save(hr5);
+            healthRecordDAO.save(hr5, adminActor);
 
             HealthRecord hr6 = new HealthRecord();
             hr6.setPatientId(patients.get(5).getId());
@@ -265,7 +269,7 @@ public class MockDataSeeder {
             hr6.setVisitDate(LocalDate.now().minusWeeks(1));
             hr6.setDiagnosis("Routine Antenatal Care (ANC) visit. 24 weeks pregnant. Fetal heartbeat normal.");
             hr6.setPrescription("Folic acid and Iron supplements. Tetanus toxoid vaccine administered.");
-            healthRecordDAO.save(hr6);
+            healthRecordDAO.save(hr6, adminActor);
 
             // ─── 4. Seed Appointments ───
             // Appointment 1: Past (Completed)
@@ -275,7 +279,7 @@ public class MockDataSeeder {
             a1.setAppointmentDatetime(LocalDateTime.now().minusDays(5).withHour(10).withMinute(0).withSecond(0).withNano(0));
             a1.setStatus(Appointment.Status.COMPLETED);
             a1.setNotes("Follow-up on Malaria treatment.");
-            appointmentDAO.save(a1);
+            appointmentDAO.save(a1, adminActor);
 
             // Appointment 2: Future (Confirmed)
             Appointment a2 = new Appointment();
@@ -284,7 +288,7 @@ public class MockDataSeeder {
             a2.setAppointmentDatetime(LocalDateTime.now().plusDays(2).withHour(14).withMinute(30).withSecond(0).withNano(0));
             a2.setStatus(Appointment.Status.CONFIRMED);
             a2.setNotes("Typhoid recovery check.");
-            appointmentDAO.save(a2);
+            appointmentDAO.save(a2, adminActor);
 
             // Appointment 3: Future (Pending)
             Appointment a3 = new Appointment();
@@ -293,7 +297,7 @@ public class MockDataSeeder {
             a3.setAppointmentDatetime(LocalDateTime.now().plusDays(5).withHour(11).withMinute(0).withSecond(0).withNano(0));
             a3.setStatus(Appointment.Status.PENDING);
             a3.setNotes("Orthopedic cast check.");
-            appointmentDAO.save(a3);
+            appointmentDAO.save(a3, adminActor);
 
             // Appointment 4: Today (Confirmed)
             Appointment a4 = new Appointment();
@@ -302,7 +306,7 @@ public class MockDataSeeder {
             a4.setAppointmentDatetime(LocalDateTime.now().withHour(15).withMinute(0).withSecond(0).withNano(0));
             a4.setStatus(Appointment.Status.CONFIRMED);
             a4.setNotes("Pediatric follow-up.");
-            appointmentDAO.save(a4);
+            appointmentDAO.save(a4, adminActor);
 
             // Appointment 5: Future (Cancelled)
             Appointment a5 = new Appointment();
@@ -311,7 +315,7 @@ public class MockDataSeeder {
             a5.setAppointmentDatetime(LocalDateTime.now().plusDays(10).withHour(9).withMinute(0).withSecond(0).withNano(0));
             a5.setStatus(Appointment.Status.CANCELLED);
             a5.setNotes("Patient travelling, will reschedule.");
-            appointmentDAO.save(a5);
+            appointmentDAO.save(a5, adminActor);
 
             // Appointment 6: Future (Pending)
             Appointment a6 = new Appointment();
@@ -320,7 +324,7 @@ public class MockDataSeeder {
             a6.setAppointmentDatetime(LocalDateTime.now().plusDays(1).withHour(10).withMinute(30).withSecond(0).withNano(0));
             a6.setStatus(Appointment.Status.PENDING);
             a6.setNotes("ANC follow-up.");
-            appointmentDAO.save(a6);
+            appointmentDAO.save(a6, adminActor);
 
             System.out.println("Mock data seeded successfully.");
 

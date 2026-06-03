@@ -14,6 +14,7 @@ import com.healthassist.exception.UnauthorizedActionException;
 import com.healthassist.model.Appointment;
 import com.healthassist.model.User;
 import com.healthassist.util.AuditLogger;
+import com.healthassist.util.SessionManager;
 
 /**
  * Business logic for appointment booking, conflict detection, and slot availability.
@@ -82,7 +83,7 @@ public class AppointmentService {
             return -1;
         }
 
-        return appointmentDAO.save(appointment);
+        return appointmentDAO.save(appointment, SessionManager.getInstance().getCurrentUser());
     }
 
     /**
@@ -151,7 +152,8 @@ public class AppointmentService {
         if (!canTransition(appt.getStatus(), Appointment.Status.CANCELLED)) return false;
 
         String updatedNotes = buildUpdatedNotes(appt.getNotes(), reason, "CANCELLED");
-        return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.CANCELLED, updatedNotes);
+        return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.CANCELLED, updatedNotes,
+                SessionManager.getInstance().getCurrentUser());
     }
 
     /**
@@ -209,7 +211,8 @@ public class AppointmentService {
         }
 
         String updatedNotes = buildUpdatedNotes(appt.getNotes(), reason, "CONFIRMED");
-        return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.CONFIRMED, updatedNotes);
+        return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.CONFIRMED, updatedNotes,
+                SessionManager.getInstance().getCurrentUser());
     }
 
     /**
@@ -255,7 +258,8 @@ public class AppointmentService {
         if (!canTransition(appt.getStatus(), Appointment.Status.COMPLETED)) return false;
 
         String updatedNotes = buildUpdatedNotes(appt.getNotes(), reason, "COMPLETED");
-        return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.COMPLETED, updatedNotes);
+        return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.COMPLETED, updatedNotes,
+                SessionManager.getInstance().getCurrentUser());
     }
 
     // package-private for unit tests
