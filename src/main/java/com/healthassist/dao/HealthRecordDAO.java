@@ -12,6 +12,7 @@ import java.util.List;
 import com.healthassist.config.DatabaseConfig;
 import com.healthassist.model.HealthRecord;
 import com.healthassist.model.User;
+import com.healthassist.util.AuditLogger;
 
 public class HealthRecordDAO {
 
@@ -131,8 +132,13 @@ public class HealthRecordDAO {
             if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), record.getPatientId())) return -1;
         }
 
-        // ADMIN allowed
-        return save(record);
+        int id = save(record);
+
+        if (id > 0) {
+            AuditLogger.log(actor.getId(), "HEALTH_RECORD_CREATED", "health_record", id, null);
+        }
+
+        return id;
     }
 
     public boolean update(HealthRecord record) {
@@ -168,7 +174,13 @@ public class HealthRecordDAO {
             if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), record.getPatientId())) return false;
         }
 
-        return update(record);
+        boolean ok = update(record);
+
+        if (ok) {
+            AuditLogger.log(actor.getId(), "HEALTH_RECORD_UPDATED", "health_record", record.getId(), null);
+        }
+
+        return ok;
     }
 
     public boolean delete(int id) {
@@ -203,13 +215,18 @@ public class HealthRecordDAO {
             if (existing.getDoctorId() != actor.getId()) return false;
 
             // We also need patientId to check appointment linkage
-            // Quick lookup: SELECT patient_id for record id
             int patientId = findPatientIdByRecordId(id);
             if (patientId < 0) return false;
             if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), patientId)) return false;
         }
 
-        return delete(id);
+        boolean ok = delete(id);
+
+        if (ok) {
+            AuditLogger.log(actor.getId(), "HEALTH_RECORD_DELETED", "health_record", id, null);
+        }
+
+        return ok;
     }
 
     private int findPatientIdByRecordId(int id) {
