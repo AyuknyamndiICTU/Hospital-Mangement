@@ -1,11 +1,19 @@
 package com.healthassist.dao;
 
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.healthassist.config.DatabaseConfig;
 import com.healthassist.model.Doctor;
 import com.healthassist.model.User;
-import java.math.BigDecimal;
-import java.sql.*;
-import java.util.*;
 
 public class DoctorDAO {
     private final UserDAO userDAO = new UserDAO();
@@ -85,6 +93,14 @@ public class DoctorDAO {
     }
 
     public boolean delete(int id) { return userDAO.delete(id); }
+
+    /**
+     * RBAC-aware delete for admin-only doctor management.
+     */
+    public boolean delete(int id, User actor) {
+        if (actor == null || actor.getRole() != User.Role.ADMIN) return false;
+        return userDAO.delete(id);
+    }
 
     public List<Map<String, String>> getSchedule(int doctorId) {
         List<Map<String, String>> schedule = new ArrayList<>();
