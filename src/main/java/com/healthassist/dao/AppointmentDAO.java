@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.healthassist.config.DatabaseConfig;
+import com.healthassist.exception.UnauthorizedActionException;
 import com.healthassist.model.Appointment;
+import com.healthassist.model.User;
 
 public class AppointmentDAO {
 
@@ -91,7 +93,7 @@ public class AppointmentDAO {
         return list;
     }
 
-    public int save(Appointment appt) {
+    private int save(Appointment appt) {
         String sql = "INSERT INTO appointments (patient_id, doctor_id, appointment_datetime, status, notes) VALUES (?, ?, ?, ?, ?)";
         Connection conn = null;
         try {
@@ -112,7 +114,17 @@ public class AppointmentDAO {
         return -1;
     }
 
-    public boolean updateStatus(int id, Appointment.Status status) {
+    public int save(Appointment appt, User actor) {
+        if (actor == null || actor.getRole() == null) {
+            throw new UnauthorizedActionException("Role null cannot perform this action.");
+        }
+        if (actor.getRole() != User.Role.ADMIN && actor.getRole() != User.Role.DOCTOR) {
+            throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
+        }
+        return save(appt);
+    }
+
+    private boolean updateStatus(int id, Appointment.Status status) {
         String sql = "UPDATE appointments SET status = ? WHERE id = ?";
         Connection conn = null;
         try {
@@ -128,10 +140,20 @@ public class AppointmentDAO {
         return false;
     }
 
+    public boolean updateStatus(int id, Appointment.Status status, User actor) {
+        if (actor == null || actor.getRole() == null) {
+            throw new UnauthorizedActionException("Role null cannot perform this action.");
+        }
+        if (actor.getRole() != User.Role.ADMIN && actor.getRole() != User.Role.DOCTOR) {
+            throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
+        }
+        return updateStatus(id, status);
+    }
+
     /**
      * Update both status + notes (used for audit reason capture).
      */
-    public boolean updateStatusAndNotes(int id, Appointment.Status status, String notes) {
+    private boolean updateStatusAndNotes(int id, Appointment.Status status, String notes) {
         String sql = "UPDATE appointments SET status = ?, notes = ? WHERE id = ?";
         Connection conn = null;
         try {
@@ -149,7 +171,17 @@ public class AppointmentDAO {
         return false;
     }
 
-    public boolean delete(int id) {
+    public boolean updateStatusAndNotes(int id, Appointment.Status status, String notes, User actor) {
+        if (actor == null || actor.getRole() == null) {
+            throw new UnauthorizedActionException("Role null cannot perform this action.");
+        }
+        if (actor.getRole() != User.Role.ADMIN && actor.getRole() != User.Role.DOCTOR) {
+            throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
+        }
+        return updateStatusAndNotes(id, status, notes);
+    }
+
+    private boolean delete(int id) {
         String sql = "DELETE FROM appointments WHERE id = ?";
         Connection conn = null;
         try {
@@ -162,6 +194,16 @@ public class AppointmentDAO {
             System.err.println("AppointmentDAO.delete error: " + e.getMessage());
         } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
         return false;
+    }
+
+    public boolean delete(int id, User actor) {
+        if (actor == null || actor.getRole() == null) {
+            throw new UnauthorizedActionException("Role null cannot perform this action.");
+        }
+        if (actor.getRole() != User.Role.ADMIN && actor.getRole() != User.Role.DOCTOR) {
+            throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
+        }
+        return delete(id);
     }
 
     /** Check if a doctor already has an appointment in the same 1-hour slot */
@@ -203,7 +245,7 @@ public class AppointmentDAO {
     }
 
     /** Mark reminder as sent */
-    public boolean markReminderSent(int id) {
+    private boolean markReminderSent(int id) {
         String sql = "UPDATE appointments SET reminder_sent = 1 WHERE id = ?";
         Connection conn = null;
         try {
@@ -216,6 +258,14 @@ public class AppointmentDAO {
             System.err.println("AppointmentDAO.markReminderSent error: " + e.getMessage());
         } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
         return false;
+    }
+
+    public boolean markReminderSent(int id, User actor) {
+        // SYSTEM allowed only: interpret "system" as no logged-in user / actor = null
+        if (actor != null) {
+            throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
+        }
+        return markReminderSent(id);
     }
 
     /** Count appointments by status for today */
