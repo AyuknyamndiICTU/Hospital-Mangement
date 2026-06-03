@@ -186,9 +186,9 @@ _This plan is structured into phases you can follow anytime. Each phase has clea
   - [x] Doctor can create/edit health records only for visits tied to an appointment they handled (or for their own patients per appointment history).  
   - [x] Patient can view only their own records (no edit/delete).  
 - [x] Update `HealthRecordController` editing/deleting authorization (service-guarded).  
-- [ ] Add DAO methods like:  
-  - [ ] `findByPatientAndDoctor(patientId, doctorId)`  
-  - [ ] `saveForAppointment(appointmentId, ...)` (preferred)  
+- [x] Add DAO methods like:  
+  - [x] `findByPatientAndDoctor(patientId, doctorId)`  
+  - [x] `saveForAppointment(appointmentId, ...)` (preferred)  
 
 ### Exit criteria  
 - [x] Doctors cannot edit records for other doctors’ patients (and patients are view-only)  
@@ -202,7 +202,7 @@ _This plan is structured into phases you can follow anytime. Each phase has clea
   - [x] JavaFX popup notifier (`JavaFxAppointmentReminderNotifier`)  
   - [ ] (Optional later) SMTP email notifier  
   - [ ] (Optional later) SMS provider notifier  
-- [ ] Add delivery audit data (success/failure) if needed.  
+- [x] Add delivery audit data (success/failure) if needed.
 - [x] Ensure reminders are scheduled with reliable semantics:  
   - [x] prevent duplicate sends even under poller restart  
 

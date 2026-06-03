@@ -43,7 +43,7 @@ public class DashboardController {
     @FXML private Label avatarInitials, profileName, profileRole, profileEmail, profileId;
     @FXML private Label calMonthLabel;
     @FXML private GridPane calendarGrid;
-    @FXML private Button navHome, navAppointments, navPatients, navDoctors, navRecords;
+    @FXML private Button navHome, navAppointments, navPatients, navDoctors, navRecords, navAuditLog;
 
     private final AppointmentDAO appointmentDAO = new AppointmentDAO();
     private final UserDAO userDAO = new UserDAO();
@@ -402,6 +402,11 @@ public class DashboardController {
 
     private void applyRoleAccess(User user) {
         if (user == null) return;
+
+        boolean isAdmin = user.getRole() == User.Role.ADMIN;
+        navAuditLog.setVisible(isAdmin);
+        navAuditLog.setManaged(isAdmin);
+
         switch (user.getRole()) {
             case PATIENT:
                 navDoctors.setVisible(false); navDoctors.setManaged(false);
@@ -427,6 +432,11 @@ public class DashboardController {
     @FXML private void onNavPatients(javafx.event.ActionEvent e) { SceneNavigator.navigateTo("PatientManagement.fxml", e); }
     @FXML private void onNavDoctors(javafx.event.ActionEvent e) { SceneNavigator.navigateTo("DoctorManagement.fxml", e); }
     @FXML private void onNavRecords(javafx.event.ActionEvent e) { SceneNavigator.navigateTo("HealthRecords.fxml", e); }
+
+    @FXML
+    private void onNavAuditLog(javafx.event.ActionEvent e) {
+        SceneNavigator.navigateTo("AuditLog.fxml", e);
+    }
 
     @FXML
     private void onLogout(javafx.event.ActionEvent e) {
