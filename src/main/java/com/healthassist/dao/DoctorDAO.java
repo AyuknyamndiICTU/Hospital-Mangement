@@ -105,7 +105,17 @@ public class DoctorDAO {
             throw new UnauthorizedActionException("delete doctor", "admin only");
         }
         boolean ok = userDAO.delete(id);
-        if (ok) AuditLogger.log(actor.getId(), "DOCTOR_DELETED", "user", id, null);
+        if (ok) {
+            Connection conn = null;
+            try {
+                conn = DatabaseConfig.getInstance().getConnection();
+                AuditLogger.log(conn, "DOCTOR_DELETED", actor.getId(), "user", id, null);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                DatabaseConfig.getInstance().releaseConnection(conn);
+            }
+        }
         return ok;
     }
 
@@ -123,7 +133,17 @@ public class DoctorDAO {
             throw new UnauthorizedActionException("update doctor", "must be admin or self");
         }
         boolean ok = update(doctor);
-        if (ok) AuditLogger.log(actor.getId(), "DOCTOR_UPDATED", "user", doctor.getId(), null);
+        if (ok) {
+            Connection conn = null;
+            try {
+                conn = DatabaseConfig.getInstance().getConnection();
+                AuditLogger.log(conn, "DOCTOR_UPDATED", actor.getId(), "user", doctor.getId(), null);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                DatabaseConfig.getInstance().releaseConnection(conn);
+            }
+        }
         return ok;
     }
 
@@ -141,7 +161,17 @@ public class DoctorDAO {
             throw new UnauthorizedActionException("save schedule", "must be admin or self");
         }
         boolean ok = saveSchedule(doctorId, schedule);
-        if (ok) AuditLogger.log(actor.getId(), "DOCTOR_SCHEDULE_UPDATED", "doctor_schedule", doctorId, null);
+        if (ok) {
+            Connection conn = null;
+            try {
+                conn = DatabaseConfig.getInstance().getConnection();
+                AuditLogger.log(conn, "DOCTOR_SCHEDULE_UPDATED", actor.getId(), "doctor_schedule", doctorId, null);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                DatabaseConfig.getInstance().releaseConnection(conn);
+            }
+        }
         return ok;
     }
 

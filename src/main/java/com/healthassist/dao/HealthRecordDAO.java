@@ -142,7 +142,15 @@ public class HealthRecordDAO {
         int id = save(record);
 
         if (id > 0) {
-            AuditLogger.log(actor.getId(), "HEALTH_RECORD_CREATED", "health_record", id, null);
+            Connection conn = null;
+            try {
+                conn = DatabaseConfig.getInstance().getConnection();
+                AuditLogger.log(conn, "HEALTH_RECORD_CREATED", actor.getId(), "health_record", id, null);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                DatabaseConfig.getInstance().releaseConnection(conn);
+            }
         }
 
         return id;
@@ -187,7 +195,15 @@ public class HealthRecordDAO {
         boolean ok = update(record);
 
         if (ok) {
-            AuditLogger.log(actor.getId(), "HEALTH_RECORD_UPDATED", "health_record", record.getId(), null);
+            Connection conn = null;
+            try {
+                conn = DatabaseConfig.getInstance().getConnection();
+                AuditLogger.log(conn, "HEALTH_RECORD_UPDATED", actor.getId(), "health_record", record.getId(), null);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                DatabaseConfig.getInstance().releaseConnection(conn);
+            }
         }
 
         return ok;
@@ -238,7 +254,15 @@ public class HealthRecordDAO {
         boolean ok = delete(id);
 
         if (ok) {
-            AuditLogger.log(actor.getId(), "HEALTH_RECORD_DELETED", "health_record", id, null);
+            Connection conn = null;
+            try {
+                conn = DatabaseConfig.getInstance().getConnection();
+                AuditLogger.log(conn, "HEALTH_RECORD_DELETED", actor.getId(), "health_record", id, null);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                DatabaseConfig.getInstance().releaseConnection(conn);
+            }
         }
 
         return ok;

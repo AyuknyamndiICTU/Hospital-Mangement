@@ -190,7 +190,17 @@ public class PatientDAO {
             throw new UnauthorizedActionException("delete patient", "admin only");
         }
         boolean ok = delete(id);
-        if (ok) AuditLogger.log(actor.getId(), "PATIENT_DELETED", "user", id, null);
+        if (ok) {
+            Connection conn = null;
+            try {
+                conn = DatabaseConfig.getInstance().getConnection();
+                AuditLogger.log(conn, "PATIENT_DELETED", actor.getId(), "user", id, null);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                DatabaseConfig.getInstance().releaseConnection(conn);
+            }
+        }
         return ok;
     }
 
@@ -208,7 +218,17 @@ public class PatientDAO {
             throw new UnauthorizedActionException("update patient", "must be admin or self");
         }
         boolean ok = update(patient);
-        if (ok) AuditLogger.log(actor.getId(), "PATIENT_UPDATED", "user", patient.getId(), null);
+        if (ok) {
+            Connection conn = null;
+            try {
+                conn = DatabaseConfig.getInstance().getConnection();
+                AuditLogger.log(conn, "PATIENT_UPDATED", actor.getId(), "user", patient.getId(), null);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                DatabaseConfig.getInstance().releaseConnection(conn);
+            }
+        }
         return ok;
     }
 

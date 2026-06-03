@@ -56,11 +56,28 @@ public class ReminderService implements Runnable {
             // Persist reminder_sent only when delivery succeeds (or can be scheduled).
             if (delivered) {
                 appointmentDAO.markReminderSent(appt.getId(), SessionManager.getInstance().getCurrentUser());
-                AuditLogger.log(null, "APPOINTMENT_REMINDER_SENT", "appointment", appt.getId(),
-                        "Reminder delivered/scheduled");
+
+                java.sql.Connection conn = null;
+                try {
+                    conn = com.healthassist.config.DatabaseConfig.getInstance().getConnection();
+                    AuditLogger.log(conn, "APPOINTMENT_REMINDER_SENT", SessionManager.getInstance().getCurrentUser().getId(),
+                            "appointment", appt.getId(), "Reminder delivered/scheduled");
+                } catch (java.sql.SQLException e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    com.healthassist.config.DatabaseConfig.getInstance().releaseConnection(conn);
+                }
             } else {
-                AuditLogger.log(null, "APPOINTMENT_REMINDER_FAILED", "appointment", appt.getId(),
-                        "Reminder delivery failed");
+                java.sql.Connection conn = null;
+                try {
+                    conn = com.healthassist.config.DatabaseConfig.getInstance().getConnection();
+                    AuditLogger.log(conn, "APPOINTMENT_REMINDER_FAILED", SessionManager.getInstance().getCurrentUser().getId(),
+                            "appointment", appt.getId(), "Reminder delivery failed");
+                } catch (java.sql.SQLException e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    com.healthassist.config.DatabaseConfig.getInstance().releaseConnection(conn);
+                }
             }
         }
     }

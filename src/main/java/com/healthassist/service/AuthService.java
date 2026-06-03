@@ -63,7 +63,15 @@ public class AuthService {
         if (newId > 0) {
             String details = "role=" + (user.getRole() != null ? user.getRole().name() : "?")
                            + "; email=" + user.getEmail();
-            AuditLogger.log(newId, "ACCOUNT_REGISTERED", "user", newId, details);
+            java.sql.Connection conn = null;
+            try {
+                conn = com.healthassist.config.DatabaseConfig.getInstance().getConnection();
+                AuditLogger.log(conn, "ACCOUNT_REGISTERED", newId, "user", newId, details);
+            } catch (java.sql.SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                com.healthassist.config.DatabaseConfig.getInstance().releaseConnection(conn);
+            }
         }
         return newId;
     }

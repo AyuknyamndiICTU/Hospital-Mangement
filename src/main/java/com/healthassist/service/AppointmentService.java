@@ -102,7 +102,15 @@ public class AppointmentService {
 
         int id = bookAppointment(appointment);
         if (id > 0) {
-            AuditLogger.log(actor.getId(), "APPOINTMENT_BOOKED", "appointment", id, "Booked by patient");
+            java.sql.Connection conn = null;
+            try {
+                conn = com.healthassist.config.DatabaseConfig.getInstance().getConnection();
+                AuditLogger.log(conn, "APPOINTMENT_BOOKED", actor.getId(), "appointment", id, "Booked by patient");
+            } catch (java.sql.SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                com.healthassist.config.DatabaseConfig.getInstance().releaseConnection(conn);
+            }
         }
         return id;
     }
@@ -133,8 +141,16 @@ public class AppointmentService {
         Appointment.Status oldStatus = appt.getStatus();
         boolean ok = cancelAppointment(appointmentId, reason);
         if (ok) {
-            AuditLogger.log(actor.getId(), "APPOINTMENT_CANCELLED", "appointment", appointmentId,
-                    buildAuditDetails(oldStatus, Appointment.Status.CANCELLED, reason));
+            java.sql.Connection conn = null;
+            try {
+                conn = com.healthassist.config.DatabaseConfig.getInstance().getConnection();
+                AuditLogger.log(conn, "APPOINTMENT_CANCELLED", actor.getId(), "appointment", appointmentId,
+                        buildAuditDetails(oldStatus, Appointment.Status.CANCELLED, reason));
+            } catch (java.sql.SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                com.healthassist.config.DatabaseConfig.getInstance().releaseConnection(conn);
+            }
         }
         return ok;
     }
@@ -183,8 +199,16 @@ public class AppointmentService {
         Appointment.Status oldStatus = appt.getStatus();
         boolean ok = confirmAppointment(appointmentId, reason);
         if (ok) {
-            AuditLogger.log(actor.getId(), "APPOINTMENT_CONFIRMED", "appointment", appointmentId,
-                    buildAuditDetails(oldStatus, Appointment.Status.CONFIRMED, reason));
+            java.sql.Connection conn = null;
+            try {
+                conn = com.healthassist.config.DatabaseConfig.getInstance().getConnection();
+                AuditLogger.log(conn, "APPOINTMENT_CONFIRMED", actor.getId(), "appointment", appointmentId,
+                        buildAuditDetails(oldStatus, Appointment.Status.CONFIRMED, reason));
+            } catch (java.sql.SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                com.healthassist.config.DatabaseConfig.getInstance().releaseConnection(conn);
+            }
         }
         return ok;
     }
@@ -240,8 +264,16 @@ public class AppointmentService {
         Appointment.Status oldStatus = appt.getStatus();
         boolean ok = completeAppointment(appointmentId, reason);
         if (ok) {
-            AuditLogger.log(actor.getId(), "APPOINTMENT_COMPLETED", "appointment", appointmentId,
-                    buildAuditDetails(oldStatus, Appointment.Status.COMPLETED, reason));
+            java.sql.Connection conn = null;
+            try {
+                conn = com.healthassist.config.DatabaseConfig.getInstance().getConnection();
+                AuditLogger.log(conn, "APPOINTMENT_COMPLETED", actor.getId(), "appointment", appointmentId,
+                        buildAuditDetails(oldStatus, Appointment.Status.COMPLETED, reason));
+            } catch (java.sql.SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                com.healthassist.config.DatabaseConfig.getInstance().releaseConnection(conn);
+            }
         }
         return ok;
     }
