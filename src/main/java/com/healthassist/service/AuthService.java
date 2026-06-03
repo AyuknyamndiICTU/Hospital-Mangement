@@ -61,8 +61,8 @@ public class AuthService {
 
         int newId = userDAO.save(user);
         if (newId > 0) {
-            String details = "role=" + (user.getRole() != null ? user.getRole().name() : "?")
-                           + "; email=" + user.getEmail();
+            String details = AuditLogger.toJson("role", user.getRole() != null ? user.getRole().name() : "?",
+                                                 "email", user.getEmail());
             java.sql.Connection conn = null;
             try {
                 conn = com.healthassist.config.DatabaseConfig.getInstance().getConnection();
