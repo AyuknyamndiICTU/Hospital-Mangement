@@ -1,15 +1,16 @@
 package com.healthassist.service;
 
-import com.healthassist.dao.AppointmentDAO;
-import com.healthassist.dao.DoctorDAO;
-import com.healthassist.model.Appointment;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import com.healthassist.dao.AppointmentDAO;
+import com.healthassist.dao.DoctorDAO;
+import com.healthassist.model.Appointment;
+import com.healthassist.model.User;
 
 /**
  * Business logic for appointment booking, conflict detection, and slot availability.
@@ -76,24 +77,156 @@ public class AppointmentService {
     }
 
     /**
-     * Cancel an appointment by ID.
+     * Book an appointment with RBAC enforcement.
+     * Only PATIENT can create appointments and only for their own patient_id.
+     */
+    public int bookAppointment(User actor, Appointment appointment) {
+        if (actor == null || actor.getRole() != User.Role.PATIENT) return -1;
+        if (appointment == null) return -1;
+        if (appointment.getPatientId() != actor.getId()) return -1;
+        return bookAppointment(appointment);
+    }
+
+    /**
+     * Cancel an appointment by ID (without reason).
      */
     public boolean cancelAppointment(int appointmentId) {
-        return appointmentDAO.updateStatus(appointmentId, Appointment.Status.CANCELLED);
+        return cancelAppointment(appointmentId, null);
     }
 
     /**
-     * Confirm an appointment by ID.
+     * Cancel an appointment with RBAC enforcement + optional audit reason.
+     */
+    public boolean cancelAppointment(User actor, int appointmentId, String reason) {
+        if (actor == null) return false;
+        if (actor.getRole() == User.Role.PATIENT) return false;
+
+        Appointment appt = appointmentDAO.findById(appointmentId);
+        if (appt == null) return false;
+        if (actor.getRole() == User.Role.DOCTOR && appt.getDoctorId() != actor.getId()) return false;
+
+        return cancelAppointment(appointmentId, reason);
+    }
+
+    /**
+     * Cancel an appointment by ID with audit reason captured in notes.
+     * Enforces valid transitions:
+     * - PENDING -> CANCELLED
+     * - CONFIRMED -> CANCELLED
+     */
+    public boolean cancelAppointment(int appointmentId, String reason) {
+        Appointment appt = appointmentDAO.findById(appointmentId);
+        if (appt == null) return false;
+
+        if (!canTransition(appt.getStatus(), Appointment.Status.CANCELLED)) return false;
+
+        String updatedNotes = buildUpdatedNotes(appt.getNotes(), reason, "CANCELLED");
+        return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.CANCELLED, updatedNotes);
+    }
+
+    /**
+     * Confirm an appointment by ID (without reason).
      */
     public boolean confirmAppointment(int appointmentId) {
-        return appointmentDAO.updateStatus(appointmentId, Appointment.Status.CONFIRMED);
+        return confirmAppointment(appointmentId, null);
     }
 
     /**
-     * Mark an appointment as completed.
+     * Confirm an appointment with RBAC enforcement + optional audit reason.
+     */
+    public boolean confirmAppointment(User actor, int appointmentId, String reason) {
+        if (actor == null) return false;
+        if (actor.getRole() == User.Role.PATIENT) return false;
+
+        Appointment appt = appointmentDAO.findById(appointmentId);
+        if (appt == null) return false;
+        if (actor.getRole() == User.Role.DOCTOR && appt.getDoctorId() != actor.getId()) return false;
+
+        return confirmAppointment(appointmentId, reason);
+    }
+
+    /**
+     * Confirm an appointment by ID with audit reason captured in notes.
+     * Enforces valid transitions:
+     * - PENDING -> CONFIRMED
+     */
+    public boolean confirmAppointment(int appointmentId, String reason) {
+        Appointment appt = appointmentDAO.findById(appointmentId);
+        if (appt == null) return false;
+
+        if (!canTransition(appt.getStatus(), Appointment.Status.CONFIRMED)) return false;
+
+        String updatedNotes = buildUpdatedNotes(appt.getNotes(), reason, "CONFIRMED");
+        return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.CONFIRMED, updatedNotes);
+    }
+
+    /**
+     * Mark an appointment as completed (without reason).
      */
     public boolean completeAppointment(int appointmentId) {
-        return appointmentDAO.updateStatus(appointmentId, Appointment.Status.COMPLETED);
+        return completeAppointment(appointmentId, null);
+    }
+
+    /**
+     * Complete an appointment with RBAC enforcement + optional audit reason.
+     */
+    public boolean completeAppointment(User actor, int appointmentId, String reason) {
+        if (actor == null) return false;
+        if (actor.getRole() == User.Role.PATIENT) return false;
+
+        Appointment appt = appointmentDAO.findById(appointmentId);
+        if (appt == null) return false;
+        if (actor.getRole() == User.Role.DOCTOR && appt.getDoctorId() != actor.getId()) return false;
+
+        return completeAppointment(appointmentId, reason);
+    }
+
+    /**
+     * Mark an appointment as completed with audit reason captured in notes.
+     * Enforces valid transitions:
+     * - CONFIRMED -> COMPLETED
+     */
+    public boolean completeAppointment(int appointmentId, String reason) {
+        Appointment appt = appointmentDAO.findById(appointmentId);
+        if (appt == null) return false;
+
+        if (!canTransition(appt.getStatus(), Appointment.Status.COMPLETED)) return false;
+
+        String updatedNotes = buildUpdatedNotes(appt.getNotes(), reason, "COMPLETED");
+        return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.COMPLETED, updatedNotes);
+    }
+
+    private boolean canTransition(Appointment.Status from, Appointment.Status to) {
+        if (from == null || to == null) return false;
+
+        // Terminal states: once cancelled/completed, no further transitions.
+        if (from == Appointment.Status.CANCELLED || from == Appointment.Status.COMPLETED) {
+            return false;
+        }
+
+        switch (from) {
+            case PENDING:
+                return to == Appointment.Status.CONFIRMED || to == Appointment.Status.CANCELLED;
+            case CONFIRMED:
+                return to == Appointment.Status.COMPLETED || to == Appointment.Status.CANCELLED;
+            default:
+                return false;
+        }
+    }
+
+    private String buildUpdatedNotes(String existingNotes, String reason, String actionStatus) {
+        String base = existingNotes != null ? existingNotes.trim() : "";
+        String r = reason != null ? reason.trim() : "";
+
+        if (r.isEmpty()) {
+            return base; // no reason captured
+        }
+
+        String reasonLine = "Reason (" + actionStatus + "): " + r;
+        if (base.isEmpty()) return reasonLine;
+
+        // Append without clobbering original booking notes
+        return base + "\n" + reasonLine;
     }
 
     /**
@@ -108,6 +241,13 @@ public class AppointmentService {
      */
     public List<Appointment> getDoctorAppointments(int doctorId) {
         return appointmentDAO.findByDoctor(doctorId);
+    }
+
+    /**
+     * Get all appointments.
+     */
+    public List<Appointment> getAllAppointments() {
+        return appointmentDAO.findAll();
     }
 
     /**

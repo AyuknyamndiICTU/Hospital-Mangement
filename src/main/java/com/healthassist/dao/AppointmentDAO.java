@@ -1,12 +1,19 @@
 package com.healthassist.dao;
 
-import com.healthassist.config.DatabaseConfig;
-import com.healthassist.model.Appointment;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.healthassist.config.DatabaseConfig;
+import com.healthassist.model.Appointment;
 
 public class AppointmentDAO {
 
@@ -117,6 +124,27 @@ public class AppointmentDAO {
             return rows > 0;
         } catch (SQLException e) {
             System.err.println("AppointmentDAO.updateStatus error: " + e.getMessage());
+        } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
+        return false;
+    }
+
+    /**
+     * Update both status + notes (used for audit reason capture).
+     */
+    public boolean updateStatusAndNotes(int id, Appointment.Status status, String notes) {
+        String sql = "UPDATE appointments SET status = ?, notes = ? WHERE id = ?";
+        Connection conn = null;
+        try {
+            conn = DatabaseConfig.getInstance().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, status.name());
+            ps.setString(2, notes);
+            ps.setInt(3, id);
+            int rows = ps.executeUpdate();
+            ps.close();
+            return rows > 0;
+        } catch (SQLException e) {
+            System.err.println("AppointmentDAO.updateStatusAndNotes error: " + e.getMessage());
         } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
         return false;
     }

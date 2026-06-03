@@ -104,64 +104,64 @@ _This plan is structured into phases you can follow anytime. Each phase has clea
 
 ## Phase 6 — Signup (Doctor + Patient) with OTP verification before login  
 ### Tasks  
-- [ ] Decide OTP delivery approach: **email or SMS** (or both)  
-- [ ] Add a “verification state” to the system (choose one strategy):  
-  - [ ] Add `users.is_verified` + `users.verified_at` columns  
-  - [ ] OR create a dedicated `otp_verifications` table and treat unverified users as “pending”  
-- [ ] Create new database tables/columns for OTP lifecycle (expiration, attempts, verified timestamp).  
-- [ ] Create `SignUp.fxml` (or `RoleSignUp.fxml`) with:  
-  - [ ] Role selection (Doctor / Patient)  
-  - [ ] Required fields (name, email; doctor-specific: specialization/hospital/rate/hours; patient-specific: DOB/blood type/phone/address/emergency contact)  
-  - [ ] Password fields (with validation rules)  
-- [ ] Create `SignUpController` to:  
-  - [ ] Validate inputs  
-  - [ ] Register user in DB in an **unverified** state  
-  - [ ] Generate OTP + hash OTP for storage  
-  - [ ] Persist OTP record (expires at X minutes)  
-  - [ ] Trigger OTP “send” via a pluggable notifier  
-- [ ] Create `OTPVerification.fxml` + `OTPVerificationController` to:  
-  - [ ] Accept OTP input  
-  - [ ] Verify OTP (match + not expired + attempt limit)  
-  - [ ] Mark the account as verified  
-  - [ ] Navigate to Login screen on success  
-- [ ] Implement an `OTPService` (generation, hashing, verification, expiration/attempt limits).  
-- [ ] Implement `Notifier` abstraction + a concrete implementation (initially stubbed to console if no SMS/email provider exists yet):  
-  - [ ] `Notifier.sendOtp(destination, otp)`  
-  - [ ] Hook the notifier into the signup flow  
-- [ ] Update `AuthService#login` so users must be **verified** to sign in.  
-- [ ] Update seeded users (AdminSeeder / MockDataSeeder) so existing demo accounts are marked verified automatically (no OTP needed).  
-- [ ] Update navigation:  
-  - [ ] Add “Sign Up” entry from `Login.fxml`  
+- [x] Decide OTP delivery approach: **email or SMS** (or both)
+- [x] Add a “verification state” to the system (choose one strategy):  
+  - [x] Add `users.is_verified` + `users.verified_at` columns  
+  - [x] OR create a dedicated `otp_verifications` table and treat unverified users as “pending”
+- [x] Create new database tables/columns for OTP lifecycle (expiration, attempts, verified timestamp).  
+- [x] Create `SignUp.fxml` (or `RoleSignUp.fxml`) with:  
+  - [x] Role selection (Doctor / Patient)  
+  - [x] Required fields (name, email; doctor-specific: specialization/hospital/rate/hours; patient-specific: DOB/blood type/phone/address/emergency contact)  
+  - [x] Password fields (with validation rules)  
+- [x] Create `SignUpController` to:  
+  - [x] Validate inputs  
+  - [x] Register user in DB in an **unverified** state  
+  - [x] Generate OTP + hash OTP for storage  
+  - [x] Persist OTP record (expires at X minutes)  
+  - [x] Trigger OTP “send” via a pluggable notifier  
+- [x] Create `OTPVerification.fxml` + `OTPVerificationController` to:  
+  - [x] Accept OTP input  
+  - [x] Verify OTP (match + not expired + attempt limit)  
+  - [x] Mark the account as verified  
+  - [x] Navigate to Login screen on success  
+- [x] Implement an `OTPService` (generation, hashing, verification, expiration/attempt limits).  
+- [x] Implement `Notifier` abstraction + a concrete implementation (initially stubbed to console if no SMS/email provider exists yet):  
+  - [x] `Notifier.sendOtp(destination, otp)`  
+  - [x] Hook the notifier into the signup flow  
+- [x] Update `AuthService#login` so users must be **verified** to sign in.  
+- [x] Update seeded users (AdminSeeder / MockDataSeeder) so existing demo accounts are marked verified automatically (no OTP needed).  
+- [x] Update navigation:  
+  - [x] Add “Sign Up” entry from `Login.fxml`  
   - [ ] Ensure Doctor/Patient pages use correct role constraints after verification  
 
 ### Exit criteria  
-- [ ] Patient and Doctor can sign up and receive OTP verification  
-- [ ] Unverified accounts cannot log in  
-- [ ] Verified accounts can log in successfully  
-- [ ] Seeded admin/doctor/patient demo users remain able to log in (auto-verified)  
+- [x] Patient and Doctor can sign up and receive OTP verification  
+- [x] Unverified accounts cannot log in  
+- [x] Verified accounts can log in successfully  
+- [x] Seeded admin/doctor/patient demo users remain able to log in (auto-verified)  
 
 ---  
 
 ## Phase 7 — Appointment management workflow (Doctor/Admin): confirm/reject/cancel/complete  
 ### Tasks  
-- [ ] Add doctor/admin appointment management UI (separate from booking UI):  
-  - [ ] list of pending appointments for doctor  
-  - [ ] view appointment details + patient concerns/notes  
-  - [ ] buttons for Confirm / Cancel / Complete (and Reject if you represent it)  
-- [ ] Implement controller event handlers that call:  
-  - [ ] `AppointmentService#confirmAppointment`  
-  - [ ] `AppointmentService#cancelAppointment`  
-  - [ ] `AppointmentService#completeAppointment`  
-- [ ] Enforce valid state transitions (service layer):  
-  - [ ] PENDING → CONFIRMED or CANCELLED  
-  - [ ] CONFIRMED → COMPLETED or CANCELLED (depending on policy)  
-  - [ ] Block invalid transitions  
-- [ ] Add audit reason capture (optional for MVP):  
-  - [ ] add “reason” field when cancelling/rejecting/completing  
+- [x] Add doctor/admin appointment management UI (separate from booking UI):
+  - [x] list of pending appointments for doctor
+  - [x] view appointment details + patient concerns/notes
+  - [x] buttons for Confirm / Cancel / Complete (and Reject if you represent it)
+- [x] Implement controller event handlers that call:
+  - [x] `AppointmentService#confirmAppointment`
+  - [x] `AppointmentService#cancelAppointment`
+  - [x] `AppointmentService#completeAppointment`
+- [x] Enforce valid state transitions (service layer):
+  - [x] PENDING → CONFIRMED or CANCELLED
+  - [x] CONFIRMED → COMPLETED or CANCELLED (depending on policy)
+  - [x] Block invalid transitions
+- [x] Add audit reason capture (optional for MVP):  
+  - [x] add “reason” field when cancelling/rejecting/completing  
 
 ### Exit criteria  
-- [ ] Doctor can manage their own appointments end-to-end  
-- [ ] Appointment statuses update correctly and consistently  
+- [x] Doctor can manage their own appointments end-to-end
+- [x] Appointment statuses update correctly and consistently
 
 ---  
 

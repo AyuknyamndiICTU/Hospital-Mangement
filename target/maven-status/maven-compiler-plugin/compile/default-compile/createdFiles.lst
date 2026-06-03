@@ -29,6 +29,7 @@ com\healthassist\MainApp.class
 com\healthassist\model\Admin.class
 com\healthassist\controller\PatientController$1.class
 com\healthassist\controller\AppointmentController$2.class
+com\healthassist\service\AppointmentService$1.class
 module-info.class
 com\healthassist\util\DateUtil.class
 com\healthassist\config\AdminSeeder.class

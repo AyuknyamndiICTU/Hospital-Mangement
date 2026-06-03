@@ -1,5 +1,13 @@
 package com.healthassist.controller;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.YearMonth;
+import java.time.format.TextStyle;
+import java.util.List;
+import java.util.Locale;
+
 import com.healthassist.dao.DoctorDAO;
 import com.healthassist.dao.PatientDAO;
 import com.healthassist.model.Appointment;
@@ -7,18 +15,25 @@ import com.healthassist.model.Doctor;
 import com.healthassist.model.Patient;
 import com.healthassist.model.User;
 import com.healthassist.service.AppointmentService;
-import com.healthassist.util.*;
+import com.healthassist.util.AlertUtil;
+import com.healthassist.util.SceneNavigator;
+import com.healthassist.util.SessionManager;
+
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
-import java.time.*;
-import java.time.format.TextStyle;
-import java.util.List;
-import java.util.Locale;
 
 public class AppointmentController {
     @FXML private Label bookMonthLabel;
@@ -266,7 +281,16 @@ public class AppointmentController {
 
     // ── Navigation ──
     @FXML private void onNavHome(javafx.event.ActionEvent e) { SceneNavigator.navigateTo("Dashboard.fxml", e); }
-    @FXML private void onNavAppointments(javafx.event.ActionEvent e) { SceneNavigator.navigateTo("AppointmentPage.fxml", e); }
+
+    @FXML private void onNavAppointments(javafx.event.ActionEvent e) {
+        User cur = SessionManager.getInstance().getCurrentUser();
+        if (cur != null && (cur.getRole() == User.Role.DOCTOR || cur.getRole() == User.Role.ADMIN)) {
+            SceneNavigator.navigateTo("AppointmentManagement.fxml", e);
+        } else {
+            SceneNavigator.navigateTo("AppointmentPage.fxml", e);
+        }
+    }
+
     @FXML private void onNavPatients(javafx.event.ActionEvent e) { SceneNavigator.navigateTo("PatientManagement.fxml", e); }
     @FXML private void onNavDoctors(javafx.event.ActionEvent e) { SceneNavigator.navigateTo("DoctorManagement.fxml", e); }
     @FXML private void onNavRecords(javafx.event.ActionEvent e) { SceneNavigator.navigateTo("HealthRecords.fxml", e); }
