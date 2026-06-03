@@ -419,7 +419,7 @@ public class DashboardController {
     }
 
     private void startReminderService() {
-        reminderService = new ReminderService();
+        reminderService = new ReminderService(new com.healthassist.service.notifier.JavaFxAppointmentReminderNotifier());
         Thread thread = new Thread(reminderService);
         thread.setDaemon(true);
         thread.setName("ReminderService");
