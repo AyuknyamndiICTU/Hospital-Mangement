@@ -105,7 +105,8 @@ public class AppointmentService {
             java.sql.Connection conn = null;
             try {
                 conn = com.healthassist.config.DatabaseConfig.getInstance().getConnection();
-                AuditLogger.log(conn, "APPOINTMENT_BOOKED", actor.getId(), "appointment", id, "Booked by patient");
+                AuditLogger.log(conn, "APPOINTMENT_BOOKED", actor.getId(), "appointment", id,
+                        AuditLogger.toJson("action", "Booked by patient"));
             } catch (java.sql.SQLException e) {
                 throw new RuntimeException(e);
             } finally {
@@ -145,7 +146,8 @@ public class AppointmentService {
             try {
                 conn = com.healthassist.config.DatabaseConfig.getInstance().getConnection();
                 AuditLogger.log(conn, "APPOINTMENT_CANCELLED", actor.getId(), "appointment", appointmentId,
-                        buildAuditDetails(oldStatus, Appointment.Status.CANCELLED, reason));
+                        AuditLogger.toJson("oldStatus", oldStatus != null ? oldStatus.name() : "?",
+                                "newStatus", "CANCELLED", "reason", reason != null ? reason : ""));
             } catch (java.sql.SQLException e) {
                 throw new RuntimeException(e);
             } finally {
@@ -165,7 +167,9 @@ public class AppointmentService {
         Appointment appt = appointmentDAO.findById(appointmentId);
         if (appt == null) return false;
 
-        if (!canTransition(appt.getStatus(), Appointment.Status.CANCELLED)) return false;
+        if (!canTransition(appt.getStatus(), Appointment.Status.CANCELLED)) {
+            throw new InvalidTransitionException("Cannot cancel appointment in state " + appt.getStatus());
+        }
 
         String updatedNotes = buildUpdatedNotes(appt.getNotes(), reason, "CANCELLED");
         return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.CANCELLED, updatedNotes,
@@ -203,7 +207,8 @@ public class AppointmentService {
             try {
                 conn = com.healthassist.config.DatabaseConfig.getInstance().getConnection();
                 AuditLogger.log(conn, "APPOINTMENT_CONFIRMED", actor.getId(), "appointment", appointmentId,
-                        buildAuditDetails(oldStatus, Appointment.Status.CONFIRMED, reason));
+                        AuditLogger.toJson("oldStatus", oldStatus != null ? oldStatus.name() : "?",
+                                "newStatus", "CONFIRMED", "reason", reason != null ? reason : ""));
             } catch (java.sql.SQLException e) {
                 throw new RuntimeException(e);
             } finally {
@@ -268,7 +273,8 @@ public class AppointmentService {
             try {
                 conn = com.healthassist.config.DatabaseConfig.getInstance().getConnection();
                 AuditLogger.log(conn, "APPOINTMENT_COMPLETED", actor.getId(), "appointment", appointmentId,
-                        buildAuditDetails(oldStatus, Appointment.Status.COMPLETED, reason));
+                        AuditLogger.toJson("oldStatus", oldStatus != null ? oldStatus.name() : "?",
+                                "newStatus", "COMPLETED", "reason", reason != null ? reason : ""));
             } catch (java.sql.SQLException e) {
                 throw new RuntimeException(e);
             } finally {
@@ -287,7 +293,9 @@ public class AppointmentService {
         Appointment appt = appointmentDAO.findById(appointmentId);
         if (appt == null) return false;
 
-        if (!canTransition(appt.getStatus(), Appointment.Status.COMPLETED)) return false;
+        if (!canTransition(appt.getStatus(), Appointment.Status.COMPLETED)) {
+            throw new InvalidTransitionException("Cannot complete appointment in state " + appt.getStatus());
+        }
 
         String updatedNotes = buildUpdatedNotes(appt.getNotes(), reason, "COMPLETED");
         return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.COMPLETED, updatedNotes,
