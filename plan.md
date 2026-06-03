@@ -213,12 +213,12 @@ _This plan is structured into phases you can follow anytime. Each phase has clea
 
 ## Phase 11 — Admin reporting + audit trail (medico-legal + operational gap)  
 ### Tasks  
-- [ ] Add database tables for audit events (choose one design):  
-  - [ ] `audit_log` with event_type, actor_user_id, target_type, target_id, timestamp, metadata JSON/text  
+- [x] Add database tables for audit events (choose one design):  
+  - [x] `audit_log` with event_type, actor_user_id, target_type, target_id, timestamp, metadata JSON/text  
   - [ ] OR separate audit tables per domain (appointments/records/users)  
-- [ ] Log every mutation:  
-  - [ ] appointment status change (+ old/new status + reason)  
-  - [ ] health record create/update/delete  
+- [x] Log every mutation:  
+  - [x] appointment status change (+ old/new status + reason)  
+  - [x] health record create/update/delete  
   - [ ] doctor/patient account creation/deletion  
 - [ ] Add admin reporting pages:  
   - [ ] appointment utilization per doctor  
@@ -234,14 +234,14 @@ _This plan is structured into phases you can follow anytime. Each phase has clea
 
 ## Phase 12 — Data integrity: timezone + “appointment in the past” + working-hours enforcement  
 ### Tasks  
-- [ ] Validate appointmentDatetime constraints in `AppointmentService`:  
-  - [ ] reject scheduling in the past  
-  - [ ] validate against working hours (hard enforce, not only for slot generation)  
+- [x] Validate appointmentDatetime constraints in `AppointmentService`:  
+  - [x] reject scheduling in the past  
+  - [x] validate against working hours (hard enforce, not only for slot generation)  
 - [ ] Make state transitions and conflict checks consistent with scheduling rules.  
 - [ ] Add tests (even minimal) for conflict/state transition rules.  
 
 ### Exit criteria  
-- [ ] System prevents inconsistent appointment states and invalid booking times  
+- [x] System prevents inconsistent appointment states and invalid booking times  
 
 ---  
 
