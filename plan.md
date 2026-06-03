@@ -199,7 +199,7 @@ _This plan is structured into phases you can follow anytime. Each phase has clea
 ### Tasks  
 - [x] Create a `Notifier` interface for OTP + appointment reminders (separate responsibilities ok).  
 - [x] Implement at least one concrete notifier for reminders:  
-  - [ ] Console logger notifier for local dev  
+  - [x] JavaFX popup notifier (`JavaFxAppointmentReminderNotifier`)  
   - [ ] (Optional later) SMTP email notifier  
   - [ ] (Optional later) SMS provider notifier  
 - [ ] Add delivery audit data (success/failure) if needed.  
