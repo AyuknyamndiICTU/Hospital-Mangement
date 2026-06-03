@@ -12,8 +12,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.healthassist.config.DatabaseConfig;
+import com.healthassist.exception.UnauthorizedActionException;
 import com.healthassist.model.Doctor;
 import com.healthassist.model.User;
+import com.healthassist.util.AuditLogger;
 
 public class DoctorDAO {
     private final UserDAO userDAO = new UserDAO();
@@ -96,10 +98,51 @@ public class DoctorDAO {
 
     /**
      * RBAC-aware delete for admin-only doctor management.
+     * Throws {@link UnauthorizedActionException} on RBAC denial.
      */
     public boolean delete(int id, User actor) {
-        if (actor == null || actor.getRole() != User.Role.ADMIN) return false;
-        return userDAO.delete(id);
+        if (actor == null || actor.getRole() != User.Role.ADMIN) {
+            throw new UnauthorizedActionException("delete doctor", "admin only");
+        }
+        boolean ok = userDAO.delete(id);
+        if (ok) AuditLogger.log(actor.getId(), "DOCTOR_DELETED", "user", id, null);
+        return ok;
+    }
+
+    /**
+     * RBAC-aware update: ADMIN, or DOCTOR updating their own record.
+     * Throws {@link UnauthorizedActionException} on RBAC denial.
+     */
+    public boolean update(Doctor doctor, User actor) {
+        if (actor == null || doctor == null) {
+            throw new UnauthorizedActionException("update doctor", "missing actor or target");
+        }
+        boolean adminOk = actor.getRole() == User.Role.ADMIN;
+        boolean selfOk  = actor.getRole() == User.Role.DOCTOR && actor.getId() == doctor.getId();
+        if (!adminOk && !selfOk) {
+            throw new UnauthorizedActionException("update doctor", "must be admin or self");
+        }
+        boolean ok = update(doctor);
+        if (ok) AuditLogger.log(actor.getId(), "DOCTOR_UPDATED", "user", doctor.getId(), null);
+        return ok;
+    }
+
+    /**
+     * RBAC-aware schedule update: ADMIN, or DOCTOR updating their own schedule.
+     * Throws {@link UnauthorizedActionException} on RBAC denial.
+     */
+    public boolean saveSchedule(int doctorId, List<Map<String, String>> schedule, User actor) {
+        if (actor == null) {
+            throw new UnauthorizedActionException("save schedule", "missing actor");
+        }
+        boolean adminOk = actor.getRole() == User.Role.ADMIN;
+        boolean selfOk  = actor.getRole() == User.Role.DOCTOR && actor.getId() == doctorId;
+        if (!adminOk && !selfOk) {
+            throw new UnauthorizedActionException("save schedule", "must be admin or self");
+        }
+        boolean ok = saveSchedule(doctorId, schedule);
+        if (ok) AuditLogger.log(actor.getId(), "DOCTOR_SCHEDULE_UPDATED", "doctor_schedule", doctorId, null);
+        return ok;
     }
 
     public List<Map<String, String>> getSchedule(int doctorId) {

@@ -3,6 +3,8 @@ package com.healthassist.controller;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import com.healthassist.exception.InvalidTransitionException;
+import com.healthassist.exception.UnauthorizedActionException;
 import com.healthassist.model.Appointment;
 import com.healthassist.model.User;
 import com.healthassist.service.AppointmentService;
@@ -150,38 +152,56 @@ public class AppointmentManagementController {
     private void onConfirm(ActionEvent e) {
         if (selected == null) return;
         User actor = SessionManager.getInstance().getCurrentUser();
-        boolean ok = appointmentService.confirmAppointment(actor, selected.getId(), getReasonText());
-        if (!ok) {
-            AlertUtil.showError("Error", "Could not confirm appointment (invalid transition).");
-            return;
+        try {
+            boolean ok = appointmentService.confirmAppointment(actor, selected.getId(), getReasonText());
+            if (!ok) {
+                AlertUtil.showError("Error", "Could not confirm appointment.");
+                return;
+            }
+            AlertUtil.showSuccess("Confirmed!");
+            loadPendingAppointments();
+        } catch (UnauthorizedActionException ex) {
+            AlertUtil.showError("Unauthorized", ex.getMessage());
+        } catch (InvalidTransitionException ex) {
+            AlertUtil.showError("Invalid Transition", ex.getMessage());
         }
-        AlertUtil.showSuccess("Confirmed!");
-        loadPendingAppointments();
     }
 
     @FXML
     private void onCancel(ActionEvent e) {
         if (selected == null) return;
         User actor = SessionManager.getInstance().getCurrentUser();
-        boolean ok = appointmentService.cancelAppointment(actor, selected.getId(), getReasonText());
-        if (!ok) {
-            AlertUtil.showError("Error", "Could not cancel appointment (invalid transition).");
-            return;
+        try {
+            boolean ok = appointmentService.cancelAppointment(actor, selected.getId(), getReasonText());
+            if (!ok) {
+                AlertUtil.showError("Error", "Could not cancel appointment.");
+                return;
+            }
+            AlertUtil.showSuccess("Cancelled!");
+            loadPendingAppointments();
+        } catch (UnauthorizedActionException ex) {
+            AlertUtil.showError("Unauthorized", ex.getMessage());
+        } catch (InvalidTransitionException ex) {
+            AlertUtil.showError("Invalid Transition", ex.getMessage());
         }
-        AlertUtil.showSuccess("Cancelled!");
-        loadPendingAppointments();
     }
 
     @FXML
     private void onComplete(ActionEvent e) {
         if (selected == null) return;
         User actor = SessionManager.getInstance().getCurrentUser();
-        boolean ok = appointmentService.completeAppointment(actor, selected.getId(), getReasonText());
-        if (!ok) {
-            AlertUtil.showError("Error", "Could not complete appointment (invalid transition).");
-            return;
+        try {
+            boolean ok = appointmentService.completeAppointment(actor, selected.getId(), getReasonText());
+            if (!ok) {
+                AlertUtil.showError("Error", "Could not complete appointment.");
+                return;
+            }
+            AlertUtil.showSuccess("Completed!");
+            loadPendingAppointments();
+        } catch (UnauthorizedActionException ex) {
+            AlertUtil.showError("Unauthorized", ex.getMessage());
+        } catch (InvalidTransitionException ex) {
+            AlertUtil.showError("Invalid Transition", ex.getMessage());
         }
-        AlertUtil.showSuccess("Completed!");
-        loadPendingAppointments();
     }
 }

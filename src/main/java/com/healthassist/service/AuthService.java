@@ -4,6 +4,7 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import com.healthassist.dao.UserDAO;
 import com.healthassist.model.User;
+import com.healthassist.util.AuditLogger;
 
 /**
  * Authentication service handling login and password hashing.
@@ -58,7 +59,13 @@ public class AuthService {
         String hash = BCrypt.hashpw(rawPassword, BCrypt.gensalt(12));
         user.setPasswordHash(hash);
 
-        return userDAO.save(user);
+        int newId = userDAO.save(user);
+        if (newId > 0) {
+            String details = "role=" + (user.getRole() != null ? user.getRole().name() : "?")
+                           + "; email=" + user.getEmail();
+            AuditLogger.log(newId, "ACCOUNT_REGISTERED", "user", newId, details);
+        }
+        return newId;
     }
 
     /**

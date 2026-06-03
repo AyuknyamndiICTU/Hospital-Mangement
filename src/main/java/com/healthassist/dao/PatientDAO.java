@@ -1,12 +1,19 @@
 package com.healthassist.dao;
 
-import com.healthassist.config.DatabaseConfig;
-import com.healthassist.model.Patient;
-import com.healthassist.model.User;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.healthassist.config.DatabaseConfig;
+import com.healthassist.exception.UnauthorizedActionException;
+import com.healthassist.model.Patient;
+import com.healthassist.model.User;
+import com.healthassist.util.AuditLogger;
 
 /**
  * Data Access Object for the patients table.
@@ -172,6 +179,37 @@ public class PatientDAO {
      */
     public boolean delete(int id) {
         return userDAO.delete(id);
+    }
+
+    /**
+     * RBAC-aware delete: ADMIN only. Logs an audit entry on success.
+     * Throws {@link UnauthorizedActionException} on RBAC denial.
+     */
+    public boolean delete(int id, User actor) {
+        if (actor == null || actor.getRole() != User.Role.ADMIN) {
+            throw new UnauthorizedActionException("delete patient", "admin only");
+        }
+        boolean ok = delete(id);
+        if (ok) AuditLogger.log(actor.getId(), "PATIENT_DELETED", "user", id, null);
+        return ok;
+    }
+
+    /**
+     * RBAC-aware update: ADMIN, or PATIENT updating their own record.
+     * Throws {@link UnauthorizedActionException} on RBAC denial.
+     */
+    public boolean update(Patient patient, User actor) {
+        if (actor == null || patient == null) {
+            throw new UnauthorizedActionException("update patient", "missing actor or target");
+        }
+        boolean adminOk = actor.getRole() == User.Role.ADMIN;
+        boolean selfOk  = actor.getRole() == User.Role.PATIENT && actor.getId() == patient.getId();
+        if (!adminOk && !selfOk) {
+            throw new UnauthorizedActionException("update patient", "must be admin or self");
+        }
+        boolean ok = update(patient);
+        if (ok) AuditLogger.log(actor.getId(), "PATIENT_UPDATED", "user", patient.getId(), null);
+        return ok;
     }
 
     /**

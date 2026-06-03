@@ -1,3 +1,4 @@
+C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\controller\AuditLogController.java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\controller\AppointmentManagementController.java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\util\AuditLogger.java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\controller\DashboardController.java
@@ -11,6 +12,7 @@ C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\dao\AppointmentDAO.java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\controller\HealthRecordController.java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\util\DateUtil.java
+C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\exception\UnauthorizedActionException.java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\service\AuthService.java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\controller\DoctorController.java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\config\AdminSeeder.java
@@ -23,6 +25,8 @@ C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\util\PendingSignupSession.java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\controller\LoginController.java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\config\DatabaseConfig.java
+C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\dao\AuditLogDAO.java
+C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\exception\InvalidTransitionException.java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\util\AlertUtil.java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\service\OTPService.java
 C:\Users\bnyam\OneDrive\Documenti\School documents\ICTU\ICTU Spring Level 2\Java Programming II\Ayukeyong Dohbila Nyamndi ICTU20234131\Hospital Mangement\src\main\java\com\healthassist\util\SessionManager.java

@@ -1,19 +1,41 @@
 package com.healthassist.controller;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
 import com.healthassist.dao.DoctorDAO;
 import com.healthassist.model.Doctor;
 import com.healthassist.model.User;
 import com.healthassist.service.AuthService;
-import com.healthassist.util.*;
+import com.healthassist.util.AlertUtil;
+import com.healthassist.util.DateUtil;
+import com.healthassist.util.SceneNavigator;
+import com.healthassist.util.SessionManager;
+
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
-import java.math.BigDecimal;
-import java.util.*;
 
 public class DoctorController {
     @FXML private TextField searchField;
@@ -90,8 +112,15 @@ public class DoctorController {
 
     private void onDelete(Doctor doc) {
         if (AlertUtil.showConfirmation("Delete Doctor", "Delete " + doc.getFullName() + "?")) {
+            User actor = SessionManager.getInstance().getCurrentUser();
             Task<Boolean> task = new Task<>() {
-                @Override protected Boolean call() { return doctorDAO.delete(doc.getId()); }
+                @Override protected Boolean call() {
+                    try { return doctorDAO.delete(doc.getId(), actor); }
+                    catch (com.healthassist.exception.UnauthorizedActionException ex) {
+                        System.err.println(ex.getMessage());
+                        return false;
+                    }
+                }
             };
             task.setOnSucceeded(e -> {
                 if (task.getValue()) { AlertUtil.showSuccess("Doctor deleted."); loadDoctors(""); }
@@ -171,11 +200,16 @@ public class DoctorController {
                 d.setWorkingHours(hoursF.getText().trim());
                 try { d.setRatePerHour(new BigDecimal(rateF.getText().trim())); } catch (Exception ex) { d.setRatePerHour(BigDecimal.ZERO); }
 
+                User actor = SessionManager.getInstance().getCurrentUser();
                 if (existing == null) {
                     int id = authService.register(d, passF.getText());
                     if (id > 0) { d.setId(id); insertDoctorRow(d); }
                 } else {
-                    doctorDAO.update(d);
+                    try { doctorDAO.update(d, actor); }
+                    catch (com.healthassist.exception.UnauthorizedActionException ex) {
+                        AlertUtil.showError("Unauthorized", ex.getMessage());
+                        return null;
+                    }
                 }
 
                 // Save schedule
@@ -190,7 +224,10 @@ public class DoctorController {
                             schedule.add(entry);
                         }
                     }
-                    doctorDAO.saveSchedule(d.getId(), schedule);
+                    try { doctorDAO.saveSchedule(d.getId(), schedule, actor); }
+                    catch (com.healthassist.exception.UnauthorizedActionException ex) {
+                        AlertUtil.showError("Unauthorized", ex.getMessage());
+                    }
                 }
                 return d;
             }

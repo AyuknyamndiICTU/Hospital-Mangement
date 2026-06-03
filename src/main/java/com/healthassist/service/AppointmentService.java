@@ -9,6 +9,8 @@ import java.util.Map;
 
 import com.healthassist.dao.AppointmentDAO;
 import com.healthassist.dao.DoctorDAO;
+import com.healthassist.exception.InvalidTransitionException;
+import com.healthassist.exception.UnauthorizedActionException;
 import com.healthassist.model.Appointment;
 import com.healthassist.model.User;
 import com.healthassist.util.AuditLogger;
@@ -86,11 +88,16 @@ public class AppointmentService {
     /**
      * Book an appointment with RBAC enforcement.
      * Only PATIENT can create appointments and only for their own patient_id.
+     * Throws {@link UnauthorizedActionException} on RBAC denial.
      */
     public int bookAppointment(User actor, Appointment appointment) {
-        if (actor == null || actor.getRole() != User.Role.PATIENT) return -1;
+        if (actor == null || actor.getRole() != User.Role.PATIENT) {
+            throw new UnauthorizedActionException("book appointment", "only patients can book");
+        }
         if (appointment == null) return -1;
-        if (appointment.getPatientId() != actor.getId()) return -1;
+        if (appointment.getPatientId() != actor.getId()) {
+            throw new UnauthorizedActionException("book appointment", "patient may only book for self");
+        }
 
         int id = bookAppointment(appointment);
         if (id > 0) {
@@ -108,18 +115,25 @@ public class AppointmentService {
 
     /**
      * Cancel an appointment with RBAC enforcement + optional audit reason.
+     * Throws {@link UnauthorizedActionException} on RBAC denial,
+     * {@link InvalidTransitionException} on invalid status transition.
      */
     public boolean cancelAppointment(User actor, int appointmentId, String reason) {
-        if (actor == null) return false;
-        if (actor.getRole() == User.Role.PATIENT) return false;
+        if (actor == null || actor.getRole() == User.Role.PATIENT) {
+            throw new UnauthorizedActionException("cancel appointment", "patients cannot cancel via this path");
+        }
 
         Appointment appt = appointmentDAO.findById(appointmentId);
         if (appt == null) return false;
-        if (actor.getRole() == User.Role.DOCTOR && appt.getDoctorId() != actor.getId()) return false;
+        if (actor.getRole() == User.Role.DOCTOR && appt.getDoctorId() != actor.getId()) {
+            throw new UnauthorizedActionException("cancel appointment", "doctor may only cancel own appointments");
+        }
 
+        Appointment.Status oldStatus = appt.getStatus();
         boolean ok = cancelAppointment(appointmentId, reason);
         if (ok) {
-            AuditLogger.log(actor.getId(), "APPOINTMENT_CANCELLED", "appointment", appointmentId, reason != null ? reason.trim() : null);
+            AuditLogger.log(actor.getId(), "APPOINTMENT_CANCELLED", "appointment", appointmentId,
+                    buildAuditDetails(oldStatus, Appointment.Status.CANCELLED, reason));
         }
         return ok;
     }
@@ -149,32 +163,50 @@ public class AppointmentService {
 
     /**
      * Confirm an appointment with RBAC enforcement + optional audit reason.
+     * Throws {@link UnauthorizedActionException} on RBAC denial,
+     * {@link InvalidTransitionException} when the appointment time has drifted
+     * into the past or no longer fits the doctor's working hours.
      */
     public boolean confirmAppointment(User actor, int appointmentId, String reason) {
-        if (actor == null) return false;
-        if (actor.getRole() == User.Role.PATIENT) return false;
+        if (actor == null || actor.getRole() == User.Role.PATIENT) {
+            throw new UnauthorizedActionException("confirm appointment", "patients cannot confirm");
+        }
 
         Appointment appt = appointmentDAO.findById(appointmentId);
         if (appt == null) return false;
-        if (actor.getRole() == User.Role.DOCTOR && appt.getDoctorId() != actor.getId()) return false;
+        if (actor.getRole() == User.Role.DOCTOR && appt.getDoctorId() != actor.getId()) {
+            throw new UnauthorizedActionException("confirm appointment", "doctor may only confirm own appointments");
+        }
 
+        Appointment.Status oldStatus = appt.getStatus();
         boolean ok = confirmAppointment(appointmentId, reason);
         if (ok) {
-            AuditLogger.log(actor.getId(), "APPOINTMENT_CONFIRMED", "appointment", appointmentId, reason != null ? reason.trim() : null);
+            AuditLogger.log(actor.getId(), "APPOINTMENT_CONFIRMED", "appointment", appointmentId,
+                    buildAuditDetails(oldStatus, Appointment.Status.CONFIRMED, reason));
         }
         return ok;
     }
 
     /**
      * Confirm an appointment by ID with audit reason captured in notes.
-     * Enforces valid transitions:
-     * - PENDING -> CONFIRMED
+     * Re-validates Phase 12 scheduling rules so a stale PENDING row cannot
+     * be promoted to CONFIRMED once its datetime has moved into the past
+     * or fallen outside the doctor's working hours.
+     * Enforces valid transitions: PENDING -> CONFIRMED.
      */
     public boolean confirmAppointment(int appointmentId, String reason) {
         Appointment appt = appointmentDAO.findById(appointmentId);
         if (appt == null) return false;
 
-        if (!canTransition(appt.getStatus(), Appointment.Status.CONFIRMED)) return false;
+        if (!canTransition(appt.getStatus(), Appointment.Status.CONFIRMED)) {
+            throw new InvalidTransitionException("Cannot confirm appointment in state " + appt.getStatus());
+        }
+        if (!isAppointmentInFuture(appt.getAppointmentDatetime())) {
+            throw new InvalidTransitionException("Cannot confirm an appointment whose datetime is in the past");
+        }
+        if (!isWithinWorkingHours(appt.getDoctorId(), appt.getAppointmentDatetime())) {
+            throw new InvalidTransitionException("Cannot confirm an appointment outside the doctor's working hours");
+        }
 
         String updatedNotes = buildUpdatedNotes(appt.getNotes(), reason, "CONFIRMED");
         return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.CONFIRMED, updatedNotes);
@@ -189,18 +221,24 @@ public class AppointmentService {
 
     /**
      * Complete an appointment with RBAC enforcement + optional audit reason.
+     * Throws {@link UnauthorizedActionException} on RBAC denial.
      */
     public boolean completeAppointment(User actor, int appointmentId, String reason) {
-        if (actor == null) return false;
-        if (actor.getRole() == User.Role.PATIENT) return false;
+        if (actor == null || actor.getRole() == User.Role.PATIENT) {
+            throw new UnauthorizedActionException("complete appointment", "patients cannot complete");
+        }
 
         Appointment appt = appointmentDAO.findById(appointmentId);
         if (appt == null) return false;
-        if (actor.getRole() == User.Role.DOCTOR && appt.getDoctorId() != actor.getId()) return false;
+        if (actor.getRole() == User.Role.DOCTOR && appt.getDoctorId() != actor.getId()) {
+            throw new UnauthorizedActionException("complete appointment", "doctor may only complete own appointments");
+        }
 
+        Appointment.Status oldStatus = appt.getStatus();
         boolean ok = completeAppointment(appointmentId, reason);
         if (ok) {
-            AuditLogger.log(actor.getId(), "APPOINTMENT_COMPLETED", "appointment", appointmentId, reason != null ? reason.trim() : null);
+            AuditLogger.log(actor.getId(), "APPOINTMENT_COMPLETED", "appointment", appointmentId,
+                    buildAuditDetails(oldStatus, Appointment.Status.COMPLETED, reason));
         }
         return ok;
     }
@@ -220,7 +258,8 @@ public class AppointmentService {
         return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.COMPLETED, updatedNotes);
     }
 
-    private boolean canTransition(Appointment.Status from, Appointment.Status to) {
+    // package-private for unit tests
+    boolean canTransition(Appointment.Status from, Appointment.Status to) {
         if (from == null || to == null) return false;
 
         // Terminal states: once cancelled/completed, no further transitions.
@@ -238,6 +277,21 @@ public class AppointmentService {
         }
     }
 
+    /**
+     * Format an audit-log details string capturing the status diff and optional reason.
+     * Example: "PENDING -> CONFIRMED" or "PENDING -> CANCELLED; reason: no-show".
+     */
+    // package-private for unit tests
+    String buildAuditDetails(Appointment.Status oldStatus, Appointment.Status newStatus, String reason) {
+        String from = oldStatus != null ? oldStatus.name() : "?";
+        String to = newStatus != null ? newStatus.name() : "?";
+        String base = from + " -> " + to;
+        if (reason != null && !reason.trim().isEmpty()) {
+            base = base + "; reason: " + reason.trim();
+        }
+        return base;
+    }
+
     private String buildUpdatedNotes(String existingNotes, String reason, String actionStatus) {
         String base = existingNotes != null ? existingNotes.trim() : "";
         String r = reason != null ? reason.trim() : "";
@@ -253,7 +307,8 @@ public class AppointmentService {
         return base + "\n" + reasonLine;
     }
 
-    private boolean isAppointmentInFuture(LocalDateTime appointmentDatetime) {
+    // package-private for unit tests
+    boolean isAppointmentInFuture(LocalDateTime appointmentDatetime) {
         return appointmentDatetime.isAfter(LocalDateTime.now());
     }
 

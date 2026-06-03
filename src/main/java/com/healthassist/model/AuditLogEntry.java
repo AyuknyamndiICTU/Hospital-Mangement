@@ -11,6 +11,7 @@ public class AuditLogEntry {
     private Integer targetId;
     private String details;
     private Timestamp createdAt;
+    private String actorName;
 
     public AuditLogEntry() {}
 
@@ -68,5 +69,13 @@ public class AuditLogEntry {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getActorName() {
+        return actorName;
+    }
+
+    public void setActorName(String actorName) {
+        this.actorName = actorName;
     }
 }

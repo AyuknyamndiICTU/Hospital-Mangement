@@ -18,8 +18,11 @@ public class HealthRecordDAO {
 
     private final AppointmentDAO appointmentDAO = new AppointmentDAO();
 
-    public List<HealthRecord> findByPatient(int patientId) {
-        // Backwards compatible: no RBAC scoping
+    /**
+     * Internal unscoped fetch — never expose publicly. Used by the actor-aware
+     * overload for ADMIN/PATIENT branches after RBAC has been enforced.
+     */
+    private List<HealthRecord> findByPatientUnscoped(int patientId) {
         List<HealthRecord> list = new ArrayList<>();
         String sql = "SELECT hr.*, up.full_name AS patient_name, ud.full_name AS doctor_name FROM health_records hr LEFT JOIN users up ON hr.patient_id = up.id LEFT JOIN users ud ON hr.doctor_id = ud.id WHERE hr.patient_id = ? ORDER BY hr.visit_date DESC";
         Connection conn = null;
@@ -31,7 +34,7 @@ public class HealthRecordDAO {
             while (rs.next()) list.add(mapRow(rs));
             rs.close(); ps.close();
         } catch (SQLException e) {
-            System.err.println("HealthRecordDAO.findByPatient error: " + e.getMessage());
+            System.err.println("HealthRecordDAO.findByPatientUnscoped error: " + e.getMessage());
         } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
         return list;
     }
@@ -44,7 +47,7 @@ public class HealthRecordDAO {
      */
     public List<HealthRecord> findByPatient(int patientId, User actor) {
         if (actor == null) return List.of();
-        if (actor.getRole() == User.Role.ADMIN) return findByPatient(patientId);
+        if (actor.getRole() == User.Role.ADMIN) return findByPatientUnscoped(patientId);
 
         if (actor.getRole() == User.Role.DOCTOR) {
             if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), patientId)) return List.of();
@@ -74,7 +77,7 @@ public class HealthRecordDAO {
 
         // PATIENT: only their own records
         if (actor.getRole() == User.Role.PATIENT && actor.getId() == patientId) {
-            return findByPatient(patientId);
+            return findByPatientUnscoped(patientId);
         }
 
         return List.of();

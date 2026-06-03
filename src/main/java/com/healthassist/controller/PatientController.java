@@ -1,22 +1,38 @@
 package com.healthassist.controller;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
 import com.healthassist.dao.HealthRecordDAO;
 import com.healthassist.dao.PatientDAO;
 import com.healthassist.model.HealthRecord;
 import com.healthassist.model.Patient;
 import com.healthassist.model.User;
 import com.healthassist.service.AuthService;
-import com.healthassist.util.*;
+import com.healthassist.util.AlertUtil;
+import com.healthassist.util.DateUtil;
+import com.healthassist.util.SceneNavigator;
+import com.healthassist.util.SessionManager;
 
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 public class PatientController {
     @FXML private TextField searchField;
@@ -101,8 +117,15 @@ public class PatientController {
 
     private void onDelete(Patient patient) {
         if (AlertUtil.showConfirmation("Delete Patient", "Are you sure you want to delete " + patient.getFullName() + "?")) {
+            User actor = SessionManager.getInstance().getCurrentUser();
             Task<Boolean> task = new Task<>() {
-                @Override protected Boolean call() { return patientDAO.delete(patient.getId()); }
+                @Override protected Boolean call() {
+                    try { return patientDAO.delete(patient.getId(), actor); }
+                    catch (com.healthassist.exception.UnauthorizedActionException ex) {
+                        System.err.println(ex.getMessage());
+                        return false;
+                    }
+                }
             };
             task.setOnSucceeded(e -> {
                 if (task.getValue()) {
@@ -121,8 +144,9 @@ public class PatientController {
         recordsPanel.setManaged(true);
         recordsPanelTitle.setText("Health Records — " + patient.getFullName());
 
+        User actor = SessionManager.getInstance().getCurrentUser();
         Task<List<HealthRecord>> task = new Task<>() {
-            @Override protected List<HealthRecord> call() { return healthRecordDAO.findByPatient(patient.getId()); }
+            @Override protected List<HealthRecord> call() { return healthRecordDAO.findByPatient(patient.getId(), actor); }
         };
         task.setOnSucceeded(e -> {
             recordsListBox.getChildren().clear();
@@ -221,7 +245,11 @@ public class PatientController {
                         insertPatientRow(p);
                     }
                 } else {
-                    patientDAO.update(p);
+                    try { patientDAO.update(p, SessionManager.getInstance().getCurrentUser()); }
+                    catch (com.healthassist.exception.UnauthorizedActionException ex) {
+                        AlertUtil.showError("Unauthorized", ex.getMessage());
+                        return null;
+                    }
                 }
                 return p;
             }
