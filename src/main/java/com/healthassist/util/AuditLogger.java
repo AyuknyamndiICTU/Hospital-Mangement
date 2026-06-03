@@ -23,6 +23,7 @@ public final class AuditLogger {
             new AuditLogDAO().insert(eventType, actorId, targetType, targetId, details, conn);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
     }
 
     private static String toJson(String... pairs) {
@@ -34,5 +35,4 @@ public final class AuditLogger {
         }
         return sb.append("}").toString();
     }
-}
 }
