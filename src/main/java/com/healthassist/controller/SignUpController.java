@@ -21,6 +21,7 @@ import com.healthassist.service.notifier.ConsoleNotifier;
 import com.healthassist.util.DateUtil;
 import com.healthassist.util.PendingSignupSession;
 import com.healthassist.util.SceneNavigator;
+import com.healthassist.util.SessionManager;
 
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -168,7 +169,7 @@ public class SignUpController {
                         entry.put("end", "17:00");
                         schedule.add(entry);
                     }
-                    doctorDAO.saveSchedule(userId, schedule);
+                    doctorDAO.saveSchedule(userId, schedule, SessionManager.getInstance().getCurrentUser());
 
                     return userId;
                 }
