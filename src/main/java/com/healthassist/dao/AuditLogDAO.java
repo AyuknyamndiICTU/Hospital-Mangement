@@ -17,6 +17,26 @@ import com.healthassist.model.User;
  */
 public class AuditLogDAO {
 
+    public void insert(String eventType,
+                       int actorId,
+                       String targetType,
+                       int targetId,
+                       String details,
+                       Connection conn) throws SQLException {
+        String sql = "INSERT INTO audit_log " +
+                "(event_type, actor_user_id, target_type, " +
+                "target_id, details, created_at) " +
+                "VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, eventType);
+            ps.setInt(2, actorId);
+            ps.setString(3, targetType);
+            ps.setInt(4, targetId);
+            ps.setString(5, details);
+            ps.executeUpdate();
+        }
+    }
+
     /**
      * Find the most recent audit entries (newest first), capped at {@code limit}.
      * Joins users to expose actor name to the admin UI.
