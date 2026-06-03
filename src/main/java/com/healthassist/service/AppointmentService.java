@@ -68,6 +68,12 @@ public class AppointmentService {
      * Returns the appointment ID on success, -1 on conflict or failure.
      */
     public int bookAppointment(Appointment appointment) {
+        if (appointment == null || appointment.getAppointmentDatetime() == null) return -1;
+
+        // Data integrity hard rules (Phase 12)
+        if (!isAppointmentInFuture(appointment.getAppointmentDatetime())) return -1;
+        if (!isWithinWorkingHours(appointment.getDoctorId(), appointment.getAppointmentDatetime())) return -1;
+
         // Conflict check: no two appointments for same doctor in same 1-hour slot
         if (appointmentDAO.hasConflict(appointment.getDoctorId(), appointment.getAppointmentDatetime())) {
             System.err.println("Appointment conflict detected for doctor " + appointment.getDoctorId());
@@ -245,6 +251,45 @@ public class AppointmentService {
 
         // Append without clobbering original booking notes
         return base + "\n" + reasonLine;
+    }
+
+    private boolean isAppointmentInFuture(LocalDateTime appointmentDatetime) {
+        return appointmentDatetime.isAfter(LocalDateTime.now());
+    }
+
+    /**
+     * Enforces doctor working hours hard (Phase 12).
+     * Appointment must be aligned to a 1-hour slot boundary (minute=0, second=0)
+     * and must fit within the configured start/end time for that day.
+     */
+    private boolean isWithinWorkingHours(int doctorId, LocalDateTime appointmentDatetime) {
+        if (appointmentDatetime.getMinute() != 0 || appointmentDatetime.getSecond() != 0) return false;
+
+        String dayCode = appointmentDatetime.getDayOfWeek().name().substring(0, 3); // MON, TUE, etc.
+        List<Map<String, String>> schedule = doctorDAO.getSchedule(doctorId);
+
+        LocalTime startTime = null;
+        LocalTime endTime = null;
+
+        for (Map<String, String> entry : schedule) {
+            if (entry.get("day").equals(dayCode)) {
+                startTime = LocalTime.parse(entry.get("start"));
+                endTime = LocalTime.parse(entry.get("end"));
+                break;
+            }
+        }
+
+        // If no schedule found for this day, use default 08:00 - 17:00 (matches slot generation)
+        if (startTime == null) {
+            startTime = LocalTime.of(8, 0);
+            endTime = LocalTime.of(17, 0);
+        }
+
+        LocalTime slotStart = appointmentDatetime.toLocalTime();
+        LocalTime slotEnd = slotStart.plusHours(1);
+
+        // slot must fit within [startTime, endTime)
+        return !slotStart.isBefore(startTime) && slotEnd.compareTo(endTime) <= 0;
     }
 
     /**
