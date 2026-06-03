@@ -76,6 +76,14 @@ public class AppointmentManagementController {
             AlertUtil.showError("Error", "Please login again.");
             return;
         }
+        if (user.getRole() != User.Role.DOCTOR && user.getRole() != User.Role.ADMIN) {
+            errorLabel.setText("Not authorized.");
+            appointmentListView.getItems().clear();
+            confirmBtn.setDisable(true);
+            cancelBtn.setDisable(true);
+            completeBtn.setDisable(true);
+            return;
+        }
 
         Task<List<Appointment>> task = new Task<>() {
             @Override
