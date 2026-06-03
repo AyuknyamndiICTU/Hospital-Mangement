@@ -1,20 +1,38 @@
 package com.healthassist.controller;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import com.healthassist.dao.DoctorDAO;
 import com.healthassist.dao.HealthRecordDAO;
 import com.healthassist.dao.PatientDAO;
-import com.healthassist.dao.DoctorDAO;
-import com.healthassist.model.*;
-import com.healthassist.util.*;
+import com.healthassist.model.Doctor;
+import com.healthassist.model.HealthRecord;
+import com.healthassist.model.Patient;
+import com.healthassist.model.User;
+import com.healthassist.util.AlertUtil;
+import com.healthassist.util.DateUtil;
+import com.healthassist.util.SceneNavigator;
+import com.healthassist.util.SessionManager;
+
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 
 public class HealthRecordController {
     @FXML private ComboBox<String> patientCombo;
@@ -120,7 +138,10 @@ public class HealthRecordController {
                 HBox actions = new HBox(8);
                 actions.setAlignment(Pos.CENTER_RIGHT);
                 User user = SessionManager.getInstance().getCurrentUser();
-                if (user != null && user.getRole() != User.Role.PATIENT) {
+                boolean canMutate = user != null && user.getRole() != User.Role.PATIENT
+                        && (user.getRole() == User.Role.ADMIN || hr.getDoctorId() == user.getId());
+
+                if (canMutate) {
                     Button editBtn = new Button("Edit");
                     editBtn.setStyle("-fx-background-color: #2D5BE3; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-size: 11; -fx-padding: 5 14; -fx-cursor: hand;");
                     editBtn.setOnAction(ev -> showRecordDialog(hr));
@@ -145,8 +166,9 @@ public class HealthRecordController {
 
     private void onDeleteRecord(HealthRecord hr) {
         if (AlertUtil.showConfirmation("Delete Record", "Delete this health record?")) {
+            User actor = SessionManager.getInstance().getCurrentUser();
             Task<Boolean> task = new Task<>() {
-                @Override protected Boolean call() { return healthRecordDAO.delete(hr.getId()); }
+                @Override protected Boolean call() { return healthRecordDAO.delete(hr.getId(), actor); }
             };
             task.setOnSucceeded(e -> {
                 if (task.getValue()) { AlertUtil.showSuccess("Record deleted."); loadRecords(selectedPatientId); }
@@ -174,11 +196,15 @@ public class HealthRecordController {
                 if (doctors.get(i).getId() == existing.getDoctorId()) { doctorCombo.getSelectionModel().select(i); break; }
             }
         }
-        // Auto-select if current user is doctor
+        // Auto-select + lock doctor selector if current user is a doctor
         User user = SessionManager.getInstance().getCurrentUser();
         if (user != null && user.getRole() == User.Role.DOCTOR) {
             for (int i = 0; i < doctors.size(); i++) {
-                if (doctors.get(i).getId() == user.getId()) { doctorCombo.getSelectionModel().select(i); doctorCombo.setDisable(true); break; }
+                if (doctors.get(i).getId() == user.getId()) {
+                    doctorCombo.getSelectionModel().select(i);
+                    doctorCombo.setDisable(true);
+                    break;
+                }
             }
         }
 
@@ -195,21 +221,39 @@ public class HealthRecordController {
 
         dialog.getDialogPane().setContent(grid);
         dialog.setResultConverter(btn -> {
-            if (btn == saveType) {
-                if (doctorCombo.getSelectionModel().isEmpty()) { AlertUtil.showError("Validation", "Select a doctor."); return null; }
-                if (diagF.getText().isBlank()) { AlertUtil.showError("Validation", "Diagnosis required."); return null; }
+                if (btn == saveType) {
+                    if (doctorCombo.getSelectionModel().isEmpty()) { AlertUtil.showError("Validation", "Select a doctor."); return null; }
+                    if (diagF.getText().isBlank()) { AlertUtil.showError("Validation", "Diagnosis required."); return null; }
 
-                HealthRecord hr = existing != null ? existing : new HealthRecord();
-                hr.setPatientId(selectedPatientId);
-                hr.setDoctorId(doctors.get(doctorCombo.getSelectionModel().getSelectedIndex()).getId());
-                hr.setVisitDate(dateF.getValue());
-                hr.setDiagnosis(diagF.getText().trim());
-                hr.setPrescription(presF.getText().trim());
+                    User actor = SessionManager.getInstance().getCurrentUser();
+                    if (actor == null || actor.getRole() == User.Role.PATIENT) {
+                        AlertUtil.showError("Authorization", "Not allowed.");
+                        return null;
+                    }
 
-                if (existing == null) healthRecordDAO.save(hr);
-                else healthRecordDAO.update(hr);
-                return hr;
-            }
+                    HealthRecord hr = existing != null ? existing : new HealthRecord();
+                    hr.setPatientId(selectedPatientId);
+                    hr.setDoctorId(doctors.get(doctorCombo.getSelectionModel().getSelectedIndex()).getId());
+                    hr.setVisitDate(dateF.getValue());
+                    hr.setDiagnosis(diagF.getText().trim());
+                    hr.setPrescription(presF.getText().trim());
+
+                    if (existing == null) {
+                        int id = healthRecordDAO.save(hr, actor);
+                        if (id < 0) {
+                            AlertUtil.showError("Authorization", "Not allowed to save this record.");
+                            return null;
+                        }
+                    } else {
+                        boolean ok = healthRecordDAO.update(hr, actor);
+                        if (!ok) {
+                            AlertUtil.showError("Authorization", "Not allowed to update this record.");
+                            return null;
+                        }
+                    }
+
+                    return hr;
+                }
             return null;
         });
 
@@ -219,7 +263,16 @@ public class HealthRecordController {
 
     // ── Navigation ──
     @FXML private void onNavHome(javafx.event.ActionEvent e) { SceneNavigator.navigateTo("Dashboard.fxml", e); }
-    @FXML private void onNavAppointments(javafx.event.ActionEvent e) { SceneNavigator.navigateTo("AppointmentPage.fxml", e); }
+
+    @FXML private void onNavAppointments(javafx.event.ActionEvent e) {
+        User cur = SessionManager.getInstance().getCurrentUser();
+        if (cur != null && (cur.getRole() == User.Role.DOCTOR || cur.getRole() == User.Role.ADMIN)) {
+            SceneNavigator.navigateTo("AppointmentManagement.fxml", e);
+        } else {
+            SceneNavigator.navigateTo("AppointmentPage.fxml", e);
+        }
+    }
+
     @FXML private void onNavPatients(javafx.event.ActionEvent e) { SceneNavigator.navigateTo("PatientManagement.fxml", e); }
     @FXML private void onNavDoctors(javafx.event.ActionEvent e) { SceneNavigator.navigateTo("DoctorManagement.fxml", e); }
     @FXML private void onNavRecords(javafx.event.ActionEvent e) { SceneNavigator.navigateTo("HealthRecords.fxml", e); }
