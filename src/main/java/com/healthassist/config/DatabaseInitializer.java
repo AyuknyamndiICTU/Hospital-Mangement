@@ -123,6 +123,20 @@ public class DatabaseInitializer {
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
                 """);
 
+                // Audit log for mutations (admin reporting / medico-legal trace)
+                stmt.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS audit_log (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        actor_user_id INT NULL,
+                        event_type VARCHAR(100) NOT NULL,
+                        target_type VARCHAR(100) NOT NULL,
+                        target_id INT NULL,
+                        details TEXT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        INDEX idx_audit_actor_time (actor_user_id, created_at)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                """);
+
                 // OTP verification lifecycle table
                 stmt.executeUpdate("""
                     CREATE TABLE IF NOT EXISTS otp_verifications (
