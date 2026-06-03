@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.healthassist.controller.AuditLogController"
+            prefWidth="1200" prefHeight="800" styleClass="dashboard-root">
+
+    <VBox spacing="16" padding="24" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Label text="Audit Log" styleClass="page-title">
+                <font><Font name="System Bold" size="24"/></font>
+            </Label>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="refreshBtn" text="Refresh" styleClass="btn-primary" onAction="#onRefresh"/>
+        </HBox>
+
+        <ListView fx:id="auditListView" VBox.vgrow="ALWAYS"/>
+
+        <Label fx:id="emptyLabel" text="" style="-fx-text-fill: #64748B;"/>
+
+    </VBox>
+</AnchorPane>
