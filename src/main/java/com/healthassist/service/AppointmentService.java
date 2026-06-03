@@ -11,6 +11,7 @@ import com.healthassist.dao.AppointmentDAO;
 import com.healthassist.dao.DoctorDAO;
 import com.healthassist.model.Appointment;
 import com.healthassist.model.User;
+import com.healthassist.util.AuditLogger;
 
 /**
  * Business logic for appointment booking, conflict detection, and slot availability.
@@ -84,7 +85,12 @@ public class AppointmentService {
         if (actor == null || actor.getRole() != User.Role.PATIENT) return -1;
         if (appointment == null) return -1;
         if (appointment.getPatientId() != actor.getId()) return -1;
-        return bookAppointment(appointment);
+
+        int id = bookAppointment(appointment);
+        if (id > 0) {
+            AuditLogger.log(actor.getId(), "APPOINTMENT_BOOKED", "appointment", id, "Booked by patient");
+        }
+        return id;
     }
 
     /**
@@ -105,7 +111,11 @@ public class AppointmentService {
         if (appt == null) return false;
         if (actor.getRole() == User.Role.DOCTOR && appt.getDoctorId() != actor.getId()) return false;
 
-        return cancelAppointment(appointmentId, reason);
+        boolean ok = cancelAppointment(appointmentId, reason);
+        if (ok) {
+            AuditLogger.log(actor.getId(), "APPOINTMENT_CANCELLED", "appointment", appointmentId, reason != null ? reason.trim() : null);
+        }
+        return ok;
     }
 
     /**
@@ -142,7 +152,11 @@ public class AppointmentService {
         if (appt == null) return false;
         if (actor.getRole() == User.Role.DOCTOR && appt.getDoctorId() != actor.getId()) return false;
 
-        return confirmAppointment(appointmentId, reason);
+        boolean ok = confirmAppointment(appointmentId, reason);
+        if (ok) {
+            AuditLogger.log(actor.getId(), "APPOINTMENT_CONFIRMED", "appointment", appointmentId, reason != null ? reason.trim() : null);
+        }
+        return ok;
     }
 
     /**
@@ -178,7 +192,11 @@ public class AppointmentService {
         if (appt == null) return false;
         if (actor.getRole() == User.Role.DOCTOR && appt.getDoctorId() != actor.getId()) return false;
 
-        return completeAppointment(appointmentId, reason);
+        boolean ok = completeAppointment(appointmentId, reason);
+        if (ok) {
+            AuditLogger.log(actor.getId(), "APPOINTMENT_COMPLETED", "appointment", appointmentId, reason != null ? reason.trim() : null);
+        }
+        return ok;
     }
 
     /**
