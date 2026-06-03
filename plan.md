@@ -238,7 +238,7 @@ _This plan is structured into phases you can follow anytime. Each phase has clea
   - [x] reject scheduling in the past  
   - [x] validate against working hours (hard enforce, not only for slot generation)  
 - [ ] Make state transitions and conflict checks consistent with scheduling rules.  
-- [ ] Add tests (even minimal) for conflict/state transition rules.  
+- [x] Add tests (even minimal) for conflict/state transition rules.
 
 ### Exit criteria  
 - [x] System prevents inconsistent appointment states and invalid booking times  
