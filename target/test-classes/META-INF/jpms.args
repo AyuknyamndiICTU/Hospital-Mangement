@@ -1,4 +1,0 @@
---patch-module
-com.healthassist=_
---add-reads
-com.healthassist=ALL-UNNAMED
