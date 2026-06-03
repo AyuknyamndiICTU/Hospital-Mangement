@@ -5,18 +5,20 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 <?import javafx.scene.shape.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.StackPane?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.healthassist.controller.SignUpController"
-            prefWidth="1100" prefHeight="750"
-            styleClass="login-root">
+            prefWidth="1100" prefHeight="750" styleClass="login-root">
 
+    <!-- ═══ MAIN CONTAINER ═══ -->
     <HBox AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
           AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
           alignment="CENTER">
 
-        <!-- LEFT PANEL -->
+        <!-- ═══ LEFT PANEL — Decorative Blue Panel ═══ -->
         <VBox styleClass="login-left-panel" alignment="CENTER" spacing="20"
               HBox.hgrow="ALWAYS" minWidth="450">
             <padding><Insets top="60" right="40" bottom="60" left="40"/></padding>
@@ -29,17 +31,17 @@
                 <Circle radius="20" styleClass="deco-circle-tiny" translateX="-60" translateY="80"/>
             </StackPane>
 
-            <Label text="Create Account" styleClass="login-heading">
-                <font><Font name="System Bold" size="32"/></font>
+            <Label text="Create Account" styleClass="welcome-title">
+                <font><Font name="System Bold" size="42"/></font>
             </Label>
 
-            <Label text="Secure OTP verification for Patient & Doctor accounts."
-                   styleClass="login-subheading"
-                   wrapText="true" textAlignment="CENTER" maxWidth="360">
+            <Label text="Secure OTP verification" styleClass="welcome-subtitle">
+                <font><Font size="18"/></font>
             </Label>
 
-            <Label text="MedCare" styleClass="welcome-subtitle">
-                <font><Font size="18" fx:id="medcareFont"/></font>
+            <Label text="Secure, efficient, and reliable registration.&#10;OTP verification is required."
+                   styleClass="welcome-desc" wrapText="true" textAlignment="CENTER" maxWidth="350">
+                <font><Font size="13"/></font>
             </Label>
 
             <!-- Decorative bottom circles -->
@@ -49,87 +51,93 @@
             </StackPane>
         </VBox>
 
-        <!-- RIGHT PANEL -->
-        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" minWidth="500" styleClass="login-right-bg">
+        <!-- ═══ RIGHT PANEL — Sign Up Form ═══ -->
+        <VBox alignment="TOP_CENTER" HBox.hgrow="ALWAYS" minWidth="500" styleClass="login-right-bg">
             <padding><Insets top="40" right="60" bottom="40" left="60"/></padding>
 
-            <!-- White Card -->
-            <VBox styleClass="login-card" spacing="18" alignment="CENTER_LEFT" maxWidth="420">
-                <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+            <!-- Scrollable card so content never clips on shorter window sizes -->
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+                <content>
+                    <VBox styleClass="login-card" spacing="18" alignment="CENTER_LEFT" maxWidth="420">
+                        <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
 
-                <!-- Header -->
-                <Label text="Sign Up" styleClass="login-heading">
-                    <font><Font name="System Bold" size="28"/></font>
-                </Label>
-                <Label text="Register as a Patient or Doctor. OTP verification is required."
-                       styleClass="login-subheading" wrapText="true"/>
+                        <!-- Header -->
+                        <Label text="Sign Up" styleClass="login-heading">
+                            <font><Font name="System Bold" size="28"/></font>
+                        </Label>
+                        <Label text="Register as a Patient or Doctor. OTP verification is required."
+                               styleClass="login-subheading" wrapText="true">
+                            <font><Font size="13"/></font>
+                        </Label>
 
-                <Region prefHeight="10"/>
+                        <Region prefHeight="10"/>
 
-                <!-- Role -->
-                <Label text="Role" styleClass="field-label"/>
-                <ComboBox fx:id="roleCombo" styleClass="combo-box" prefHeight="44"/>
+                        <!-- Role -->
+                        <Label text="Role" styleClass="field-label"/>
+                        <ComboBox fx:id="roleCombo" styleClass="combo-box" prefHeight="44"/>
 
-                <!-- Shared fields -->
-                <Label text="Full name" styleClass="field-label"/>
-                <TextField fx:id="fullNameField" promptText="Enter your full name" styleClass="login-input" prefHeight="44"/>
+                        <!-- Patient section -->
+                        <VBox fx:id="patientBox" spacing="10" visible="true" managed="true">
+                            <Label text="Patient details" style="-fx-font-weight: bold; -fx-text-fill: #2D5BE3; -fx-font-size: 13px;"/>
 
-                <Label text="Email" styleClass="field-label"/>
-                <TextField fx:id="emailField" promptText="e.g. amadou.a@example.cm" styleClass="login-input" prefHeight="44"/>
+                            <Label text="Date of birth" styleClass="field-label"/>
+                            <DatePicker fx:id="dobField" styleClass="login-input" prefHeight="44"/>
 
-                <Label text="Password" styleClass="field-label"/>
-                <PasswordField fx:id="passwordField" promptText="Minimum 6 characters" styleClass="login-input" prefHeight="44"/>
+                            <Label text="Blood type" styleClass="field-label"/>
+                            <TextField fx:id="bloodTypeField" promptText="e.g. O+" styleClass="login-input" prefHeight="44"/>
 
-                <!-- Error Label -->
-                <Label fx:id="errorLabel" text="" wrapText="true" styleClass="error-label"/>
+                            <Label text="Address" styleClass="field-label"/>
+                            <TextField fx:id="addressField" promptText="Your address" styleClass="login-input" prefHeight="44"/>
 
-                <Separator/>
+                            <Label text="Phone" styleClass="field-label"/>
+                            <TextField fx:id="phoneField" promptText="Phone number" styleClass="login-input" prefHeight="44"/>
 
-                <!-- Patient section -->
-                <VBox fx:id="patientBox" spacing="10" visible="true" managed="true">
-                    <Label text="Patient details" style="-fx-font-weight: bold; -fx-text-fill: #2D5BE3; -fx-font-size: 13px;"/>
-                    <Label text="Date of birth" styleClass="field-label"/>
-                    <DatePicker fx:id="dobField" styleClass="login-input" prefHeight="44"/>
+                            <Label text="Emergency contact" styleClass="field-label"/>
+                            <TextField fx:id="emergencyContactField" promptText="Emergency contact" styleClass="login-input" prefHeight="44"/>
+                        </VBox>
 
-                    <Label text="Blood type" styleClass="field-label"/>
-                    <TextField fx:id="bloodTypeField" promptText="e.g. O+" styleClass="login-input" prefHeight="44"/>
+                        <!-- Doctor section -->
+                        <VBox fx:id="doctorBox" spacing="10" visible="false" managed="false">
+                            <Label text="Doctor details" style="-fx-font-weight: bold; -fx-text-fill: #2D5BE3; -fx-font-size: 13px;"/>
 
-                    <Label text="Address" styleClass="field-label"/>
-                    <TextField fx:id="addressField" promptText="Your address" styleClass="login-input" prefHeight="44"/>
+                            <Label text="Specialization" styleClass="field-label"/>
+                            <TextField fx:id="specializationField" promptText="e.g. Pediatrics" styleClass="login-input" prefHeight="44"/>
 
-                    <Label text="Phone" styleClass="field-label"/>
-                    <TextField fx:id="phoneField" promptText="Phone number" styleClass="login-input" prefHeight="44"/>
+                            <Label text="Hospital" styleClass="field-label"/>
+                            <TextField fx:id="hospitalField" promptText="Hospital name" styleClass="login-input" prefHeight="44"/>
 
-                    <Label text="Emergency contact" styleClass="field-label"/>
-                    <TextField fx:id="emergencyContactField" promptText="Emergency contact" styleClass="login-input" prefHeight="44"/>
-                </VBox>
+                            <Label text="Rate / hour (FCFA)" styleClass="field-label"/>
+                            <TextField fx:id="rateField" promptText="e.g. 15000" styleClass="login-input" prefHeight="44"/>
 
-                <!-- Doctor section -->
-                <VBox fx:id="doctorBox" spacing="10" visible="false" managed="false">
-                    <Label text="Doctor details" style="-fx-font-weight: bold; -fx-text-fill: #2D5BE3; -fx-font-size: 13px;"/>
-                    <Label text="Specialization" styleClass="field-label"/>
-                    <TextField fx:id="specializationField" promptText="e.g. Pediatrics" styleClass="login-input" prefHeight="44"/>
+                            <Label text="Working hours" styleClass="field-label"/>
+                            <TextField fx:id="workingHoursField" promptText="e.g. 08:00-17:00" styleClass="login-input" prefHeight="44"/>
+                        </VBox>
 
-                    <Label text="Hospital" styleClass="field-label"/>
-                    <TextField fx:id="hospitalField" promptText="Hospital name" styleClass="login-input" prefHeight="44"/>
+                        <!-- Shared fields (always visible) -->
+                        <Label text="Full name" styleClass="field-label"/>
+                        <TextField fx:id="fullNameField" promptText="Enter your full name" styleClass="login-input" prefHeight="44"/>
 
-                    <Label text="Rate / hour (FCFA)" styleClass="field-label"/>
-                    <TextField fx:id="rateField" promptText="e.g. 15000" styleClass="login-input" prefHeight="44"/>
+                        <Label text="Email" styleClass="field-label"/>
+                        <TextField fx:id="emailField" promptText="e.g. john@example.com" styleClass="login-input" prefHeight="44"/>
 
-                    <Label text="Working hours" styleClass="field-label"/>
-                    <TextField fx:id="workingHoursField" promptText="e.g. 08:00-17:00" styleClass="login-input" prefHeight="44"/>
-                </VBox>
+                        <Label text="Password" styleClass="field-label"/>
+                        <PasswordField fx:id="passwordField" promptText="Minimum 6 characters" styleClass="login-input" prefHeight="44"/>
 
-                <!-- Sign Up Button -->
-                <Button fx:id="signUpBtn" text="Sign Up" styleClass="btn-primary"
-                        prefHeight="44" maxWidth="Infinity" onAction="#onSignUp"/>
+                        <!-- Error Label -->
+                        <Label fx:id="errorLabel" text="" styleClass="error-label" wrapText="true"/>
 
-                <!-- Bottom -->
-                <HBox alignment="CENTER" spacing="10" style="-fx-padding: 6 0 0 0;">
-                    <Label text="Already have an account?" styleClass="login-subheading"/>
-                    <Button text="Go to Login" styleClass="btn-outline" prefHeight="38" onAction="#onGoToLogin"/>
-                </HBox>
-            </VBox>
+                        <!-- Sign Up Button -->
+                        <Button fx:id="signUpBtn" text="Sign Up" styleClass="btn-primary"
+                                prefHeight="44" maxWidth="Infinity" onAction="#onSignUp"/>
+
+                        <!-- Bottom -->
+                        <HBox alignment="CENTER" spacing="10" style="-fx-padding: 6 0 0 0;">
+                            <Label text="Already have an account?" styleClass="login-subheading"/>
+                            <Button text="Go to Login" styleClass="btn-outline" prefHeight="38" onAction="#onGoToLogin"/>
+                        </HBox>
+                    </VBox>
+                </content>
+            </ScrollPane>
         </VBox>
     </HBox>
 </AnchorPane>
