@@ -229,6 +229,58 @@ public class HealthRecordDAO {
         return ok;
     }
 
+    /**
+     * Convenience DAO method required by Phase 9 plan.
+     * Returns all records for a specific patient + doctor pair.
+     * (RBAC should be enforced by the caller/controller/service.)
+     */
+    public List<HealthRecord> findByPatientAndDoctor(int patientId, int doctorId) {
+        List<HealthRecord> list = new ArrayList<>();
+        String sql = "SELECT * FROM health_records WHERE patient_id = ? AND doctor_id = ? ORDER BY visit_date DESC";
+
+        Connection conn = null;
+        try {
+            conn = DatabaseConfig.getInstance().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, patientId);
+            ps.setInt(2, doctorId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                HealthRecord hr = new HealthRecord();
+                hr.setId(rs.getInt("id"));
+                hr.setPatientId(rs.getInt("patient_id"));
+                hr.setDoctorId(rs.getInt("doctor_id"));
+                hr.setDiagnosis(rs.getString("diagnosis"));
+                hr.setPrescription(rs.getString("prescription"));
+                Date vd = rs.getDate("visit_date");
+                if (vd != null) hr.setVisitDate(vd.toLocalDate());
+                list.add(hr);
+            }
+            rs.close(); ps.close();
+        } catch (SQLException e) {
+            System.err.println("HealthRecordDAO.findByPatientAndDoctor error: " + e.getMessage());
+        } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
+
+        return list;
+    }
+
+    /**
+     * Convenience DAO method required by Phase 9 plan.
+     * Saves a health record "for" an appointment:
+     * - derives patient_id and doctor_id from the appointment
+     * - enforces RBAC via save(record, actor)
+     */
+    public int saveForAppointment(int appointmentId, HealthRecord record, User actor) {
+        if (record == null) return -1;
+        com.healthassist.model.Appointment appt = appointmentDAO.findById(appointmentId);
+        if (appt == null) return -1;
+
+        record.setPatientId(appt.getPatientId());
+        record.setDoctorId(appt.getDoctorId());
+
+        return save(record, actor);
+    }
+
     private int findPatientIdByRecordId(int id) {
         String sql = "SELECT id, patient_id FROM health_records WHERE id = ?";
         Connection conn = null;
