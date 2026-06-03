@@ -345,7 +345,7 @@ public class AppointmentService {
 
     // package-private for unit tests
     boolean isAppointmentInFuture(LocalDateTime appointmentDatetime) {
-        return appointmentDatetime.isAfter(LocalDateTime.now());
+        return appointmentDatetime.isAfter(LocalDateTime.now().plusMinutes(30));
     }
 
     /**
