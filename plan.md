@@ -197,17 +197,17 @@ _This plan is structured into phases you can follow anytime. Each phase has clea
 
 ## Phase 10 — Notifications: replace popup-only reminder with pluggable delivery  
 ### Tasks  
-- [ ] Create a `Notifier` interface for OTP + appointment reminders (separate responsibilities ok).  
-- [ ] Implement at least one concrete notifier for reminders:  
+- [x] Create a `Notifier` interface for OTP + appointment reminders (separate responsibilities ok).  
+- [x] Implement at least one concrete notifier for reminders:  
   - [ ] Console logger notifier for local dev  
   - [ ] (Optional later) SMTP email notifier  
   - [ ] (Optional later) SMS provider notifier  
 - [ ] Add delivery audit data (success/failure) if needed.  
-- [ ] Ensure reminders are scheduled with reliable semantics:  
-  - [ ] prevent duplicate sends even under poller restart  
+- [x] Ensure reminders are scheduled with reliable semantics:  
+  - [x] prevent duplicate sends even under poller restart  
 
 ### Exit criteria  
-- [ ] ReminderService calls notifier and records reminder_sent only when delivery succeeds (or after “attempt”)  
+- [x] ReminderService calls notifier and records reminder_sent only when delivery succeeds (or after “attempt”)  
 
 ---  
 
