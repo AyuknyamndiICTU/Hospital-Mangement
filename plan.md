@@ -167,16 +167,16 @@ _This plan is structured into phases you can follow anytime. Each phase has clea
 
 ## Phase 8 — Security hardening: enforce RBAC in service/DAO layer (not just UI hiding)  
 ### Tasks  
-- [ ] Identify every user action entry point (controllers) that performs mutations.  
-- [ ] Add authorization guards in services, e.g.:  
-  - [ ] Only ADMIN can manage doctors/patients broadly  
-  - [ ] Only DOCTOR can manage appointments & create EHR entries for their patients (via appointment linkage)  
-  - [ ] Only PATIENT can view their own EHR/appointments  
-- [ ] Update `AppointmentService` and `HealthRecordDAO/Service` to accept current user context and verify ownership.  
-- [ ] Ensure “open page directly” doesn’t grant unauthorized capabilities (UI must not be sole protection).  
+- [x] Identify every user action entry point (controllers) that performs mutations.
+- [x] Add authorization guards in services, e.g.:  
+  - [x] Only ADMIN can manage doctors/patients broadly  
+  - [x] Only DOCTOR can manage appointments & create EHR entries for their patients (via appointment linkage)  
+  - [x] Only PATIENT can view their own EHR/appointments  
+- [x] Update `AppointmentService` and `HealthRecordDAO/Service` to accept current user context and verify ownership.  
+- [x] Ensure “open page directly” doesn’t grant unauthorized capabilities (UI must not be sole protection).  
 
 ### Exit criteria  
-- [ ] Unauthorized roles cannot create/update/delete records even if they navigate manually  
+- [x] Unauthorized roles cannot create/update/delete records even if they navigate manually  
 
 ---  
 

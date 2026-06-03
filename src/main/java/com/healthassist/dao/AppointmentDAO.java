@@ -250,6 +250,33 @@ public class AppointmentDAO {
         return 0;
     }
 
+    /**
+     * Check whether a doctor has handled an appointment with the given patient.
+     * Used to enforce EHR write permissions based on appointment linkage.
+     */
+    public boolean doctorHasAppointmentWithPatient(int doctorId, int patientId) {
+        String sql = """
+            SELECT COUNT(*) FROM appointments
+            WHERE doctor_id = ? AND patient_id = ?
+              AND status IN ('CONFIRMED','COMPLETED')
+        """;
+
+        Connection conn = null;
+        try {
+            conn = DatabaseConfig.getInstance().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, doctorId);
+            ps.setInt(2, patientId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+            rs.close(); ps.close();
+        } catch (SQLException e) {
+            System.err.println("AppointmentDAO.doctorHasAppointmentWithPatient error: " + e.getMessage());
+        } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
+
+        return false;
+    }
+
     private Appointment mapRow(ResultSet rs) throws SQLException {
         Appointment a = new Appointment();
         a.setId(rs.getInt("id"));
