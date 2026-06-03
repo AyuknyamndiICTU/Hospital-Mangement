@@ -1,11 +1,10 @@
 package com.healthassist.service;
 
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.time.LocalDateTime;
-
 import org.junit.jupiter.api.Test;
 
 import com.healthassist.model.Appointment;
@@ -73,9 +72,9 @@ class AppointmentServiceTest {
     }
 
     @Test
-    void isAppointmentInFuture_oneSecondFuture_accepted() {
-        // Edge case from Phase 12 audit: booking 1 second into the future is allowed.
-        assertTrue(service.isAppointmentInFuture(LocalDateTime.now().plusSeconds(2)));
+    void isAppointmentInFuture_oneSecondFuture_rejected() {
+        // With the 30-minute threshold, a booking only seconds into the future must be rejected.
+        assertFalse(service.isAppointmentInFuture(LocalDateTime.now().plusSeconds(2)));
     }
 
     // ── buildAuditDetails ─────────────────────────────────────────────────────
