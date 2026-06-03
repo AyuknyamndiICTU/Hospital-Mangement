@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.healthassist.config.DatabaseConfig;
+import com.healthassist.exception.UnauthorizedActionException;
 import com.healthassist.model.HealthRecord;
 import com.healthassist.model.User;
 import com.healthassist.util.AuditLogger;
@@ -99,7 +100,7 @@ public class HealthRecordDAO {
         return list;
     }
 
-    public int save(HealthRecord record) {
+    private int save(HealthRecord record) {
         String sql = "INSERT INTO health_records (patient_id, doctor_id, diagnosis, prescription, visit_date) VALUES (?, ?, ?, ?, ?)";
         Connection conn = null;
         try {
@@ -128,11 +129,14 @@ public class HealthRecordDAO {
      */
     public int save(HealthRecord record, User actor) {
         if (actor == null || record == null) return -1;
-        if (actor.getRole() == User.Role.PATIENT) return -1;
+        if (actor.getRole() == User.Role.PATIENT)
+            throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
 
         if (actor.getRole() == User.Role.DOCTOR) {
-            if (record.getDoctorId() != actor.getId()) return -1;
-            if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), record.getPatientId())) return -1;
+            if (record.getDoctorId() != actor.getId())
+                throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
+            if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), record.getPatientId()))
+                throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
         }
 
         int id = save(record);
@@ -144,7 +148,7 @@ public class HealthRecordDAO {
         return id;
     }
 
-    public boolean update(HealthRecord record) {
+    private boolean update(HealthRecord record) {
         String sql = "UPDATE health_records SET diagnosis = ?, prescription = ?, visit_date = ? WHERE id = ?";
         Connection conn = null;
         try {
@@ -170,11 +174,14 @@ public class HealthRecordDAO {
      */
     public boolean update(HealthRecord record, User actor) {
         if (actor == null || record == null) return false;
-        if (actor.getRole() == User.Role.PATIENT) return false;
+        if (actor.getRole() == User.Role.PATIENT)
+            throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
 
         if (actor.getRole() == User.Role.DOCTOR) {
-            if (record.getDoctorId() != actor.getId()) return false;
-            if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), record.getPatientId())) return false;
+            if (record.getDoctorId() != actor.getId())
+                throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
+            if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), record.getPatientId()))
+                throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
         }
 
         boolean ok = update(record);
@@ -186,7 +193,7 @@ public class HealthRecordDAO {
         return ok;
     }
 
-    public boolean delete(int id) {
+    private boolean delete(int id) {
         String sql = "DELETE FROM health_records WHERE id = ?";
         Connection conn = null;
         try {
@@ -209,18 +216,23 @@ public class HealthRecordDAO {
      */
     public boolean delete(int id, User actor) {
         if (actor == null) return false;
-        if (actor.getRole() == User.Role.PATIENT) return false;
+        if (actor.getRole() == User.Role.PATIENT)
+            throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
 
         if (actor.getRole() == User.Role.DOCTOR) {
             // Enforce both doctor ownership and appointment linkage
             HealthRecord existing = findDoctorIdByRecordId(id);
-            if (existing == null) return false;
-            if (existing.getDoctorId() != actor.getId()) return false;
+            if (existing == null)
+                throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
+            if (existing.getDoctorId() != actor.getId())
+                throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
 
             // We also need patientId to check appointment linkage
             int patientId = findPatientIdByRecordId(id);
-            if (patientId < 0) return false;
-            if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), patientId)) return false;
+            if (patientId < 0)
+                throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
+            if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), patientId))
+                throw new UnauthorizedActionException("Role " + actor.getRole() + " cannot perform this action.");
         }
 
         boolean ok = delete(id);

@@ -114,7 +114,7 @@ public class PatientDAO {
     /**
      * Save a new patient (inserts into both users and patients tables).
      */
-    public boolean save(Patient patient) {
+    private boolean save(Patient patient) {
         // First insert into users table
         int userId = userDAO.save(patient);
         if (userId < 0) return false;
@@ -147,7 +147,7 @@ public class PatientDAO {
     /**
      * Update patient details (both users and patients tables).
      */
-    public boolean update(Patient patient) {
+    private boolean update(Patient patient) {
         // Update users table
         userDAO.update(patient);
 
@@ -177,7 +177,7 @@ public class PatientDAO {
     /**
      * Delete a patient (cascades via users table FK).
      */
-    public boolean delete(int id) {
+    private boolean delete(int id) {
         return userDAO.delete(id);
     }
 

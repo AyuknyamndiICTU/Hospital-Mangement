@@ -52,7 +52,7 @@ public class DoctorDAO {
         return doctors;
     }
 
-    public boolean save(Doctor doctor) {
+    private boolean save(Doctor doctor) {
         int userId = userDAO.save(doctor);
         if (userId < 0) return false;
         String sql = "INSERT INTO doctors (id, specialization, rate_per_hour, hospital, working_hours) VALUES (?, ?, ?, ?, ?)";
@@ -74,7 +74,7 @@ public class DoctorDAO {
         return false;
     }
 
-    public boolean update(Doctor doctor) {
+    private boolean update(Doctor doctor) {
         userDAO.update(doctor);
         String sql = "UPDATE doctors SET specialization = ?, rate_per_hour = ?, hospital = ?, working_hours = ? WHERE id = ?";
         Connection conn = null;
@@ -94,7 +94,7 @@ public class DoctorDAO {
         return false;
     }
 
-    public boolean delete(int id) { return userDAO.delete(id); }
+    private boolean delete(int id) { return userDAO.delete(id); }
 
     /**
      * RBAC-aware delete for admin-only doctor management.
@@ -168,7 +168,7 @@ public class DoctorDAO {
         return schedule;
     }
 
-    public boolean saveSchedule(int doctorId, List<Map<String, String>> schedule) {
+    private boolean saveSchedule(int doctorId, List<Map<String, String>> schedule) {
         Connection conn = null;
         try {
             conn = DatabaseConfig.getInstance().getConnection();
