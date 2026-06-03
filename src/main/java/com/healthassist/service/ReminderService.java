@@ -1,11 +1,11 @@
 package com.healthassist.service;
 
+import java.util.List;
+
 import com.healthassist.dao.AppointmentDAO;
 import com.healthassist.model.Appointment;
-import javafx.application.Platform;
-import javafx.scene.control.Alert;
-
-import java.util.List;
+import com.healthassist.service.notifier.AppointmentReminderNotifier;
+import com.healthassist.service.notifier.JavaFxAppointmentReminderNotifier;
 
 /**
  * Daemon background thread that polls for upcoming appointments
@@ -14,7 +14,17 @@ import java.util.List;
 public class ReminderService implements Runnable {
 
     private final AppointmentDAO appointmentDAO = new AppointmentDAO();
+    private final AppointmentReminderNotifier reminderNotifier;
+
     private volatile boolean running = true;
+
+    public ReminderService() {
+        this(new JavaFxAppointmentReminderNotifier());
+    }
+
+    public ReminderService(AppointmentReminderNotifier reminderNotifier) {
+        this.reminderNotifier = reminderNotifier != null ? reminderNotifier : new JavaFxAppointmentReminderNotifier();
+    }
 
     @Override
     public void run() {
@@ -39,22 +49,12 @@ public class ReminderService implements Runnable {
     private void checkReminders() {
         List<Appointment> upcoming = appointmentDAO.getUpcomingReminders();
         for (Appointment appt : upcoming) {
-            // Show notification on JavaFX thread
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Appointment Reminder");
-                alert.setHeaderText("Upcoming Appointment");
-                alert.setContentText(String.format(
-                    "You have an appointment at %s\nPatient: %s\nDoctor: %s",
-                    appt.getAppointmentDatetime().toLocalTime().toString(),
-                    appt.getPatientName() != null ? appt.getPatientName() : "N/A",
-                    appt.getDoctorName() != null ? appt.getDoctorName() : "N/A"
-                ));
-                alert.show();
-            });
+            boolean delivered = reminderNotifier.sendReminder(appt);
 
-            // Mark as reminded
-            appointmentDAO.markReminderSent(appt.getId());
+            // Persist reminder_sent only when delivery succeeds (or can be scheduled).
+            if (delivered) {
+                appointmentDAO.markReminderSent(appt.getId());
+            }
         }
     }
 
