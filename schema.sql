@@ -1,3 +1,5 @@
+-- Authoritative schema. Mirrors DatabaseInitializer.java.
+-- Last synced: 2026-06-03
 -- Health Assistance System Database Schema
 -- Run this script in MySQL Workbench to create the database and tables manually.
 
@@ -12,6 +14,36 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('PATIENT','DOCTOR','ADMIN') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE users ADD COLUMN is_verified TINYINT DEFAULT 0;
+ALTER TABLE users ADD COLUMN verified_at DATETIME NULL;
+
+-- OTP verification lifecycle table
+CREATE TABLE IF NOT EXISTS otp_verifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    destination VARCHAR(100) NOT NULL,
+    otp_hash VARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    attempts_used INT DEFAULT 0,
+    max_attempts INT DEFAULT 5,
+    consumed TINYINT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_otp_user_created (user_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Audit log for mutations (admin reporting / medico-legal trace)
+CREATE TABLE IF NOT EXISTS audit_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    actor_user_id INT NULL,
+    event_type VARCHAR(100) NOT NULL,
+    target_type VARCHAR(100) NOT NULL,
+    target_id INT NULL,
+    details TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_audit_actor_time (actor_user_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Patients table
