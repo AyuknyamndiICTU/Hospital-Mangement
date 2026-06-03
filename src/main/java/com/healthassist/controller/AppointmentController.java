@@ -257,9 +257,19 @@ public class AppointmentController {
         appt.setStatus(Appointment.Status.PENDING);
         appt.setNotes(concernsArea.getText());
 
+        User actor = SessionManager.getInstance().getCurrentUser();
+        if (actor == null || actor.getRole() != User.Role.PATIENT) {
+            AlertUtil.showError("Error", "Only patients can book appointments.");
+            return;
+        }
+        if (actor.getId() != patientId) {
+            AlertUtil.showError("Error", "You can only book appointments for yourself.");
+            return;
+        }
+
         bookBtn.setDisable(true);
         Task<Integer> task = new Task<>() {
-            @Override protected Integer call() { return appointmentService.bookAppointment(appt); }
+            @Override protected Integer call() { return appointmentService.bookAppointment(actor, appt); }
         };
         task.setOnSucceeded(e -> {
             int id = task.getValue();
