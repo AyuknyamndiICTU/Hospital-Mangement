@@ -90,8 +90,9 @@ public class HealthRecordController {
     }
 
     private void loadRecords(int patientId) {
+        User actor = SessionManager.getInstance().getCurrentUser();
         Task<List<HealthRecord>> task = new Task<>() {
-            @Override protected List<HealthRecord> call() { return healthRecordDAO.findByPatient(patientId); }
+            @Override protected List<HealthRecord> call() { return healthRecordDAO.findByPatient(patientId, actor); }
         };
         task.setOnSucceeded(e -> {
             timelineLine.getChildren().clear();
