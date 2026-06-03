@@ -6,6 +6,7 @@ import com.healthassist.dao.AppointmentDAO;
 import com.healthassist.model.Appointment;
 import com.healthassist.service.notifier.AppointmentReminderNotifier;
 import com.healthassist.service.notifier.JavaFxAppointmentReminderNotifier;
+import com.healthassist.util.AuditLogger;
 
 /**
  * Daemon background thread that polls for upcoming appointments
@@ -54,6 +55,11 @@ public class ReminderService implements Runnable {
             // Persist reminder_sent only when delivery succeeds (or can be scheduled).
             if (delivered) {
                 appointmentDAO.markReminderSent(appt.getId());
+                AuditLogger.log(null, "APPOINTMENT_REMINDER_SENT", "appointment", appt.getId(),
+                        "Reminder delivered/scheduled");
+            } else {
+                AuditLogger.log(null, "APPOINTMENT_REMINDER_FAILED", "appointment", appt.getId(),
+                        "Reminder delivery failed");
             }
         }
     }

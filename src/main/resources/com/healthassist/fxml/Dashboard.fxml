@@ -41,6 +41,10 @@
                 <tooltip><Tooltip text="Health Records"/></tooltip>
             </Button>
 
+            <Button fx:id="navAuditLog" text="🧾" styleClass="sidebar-icon" onAction="#onNavAuditLog">
+                <tooltip><Tooltip text="Audit Log"/></tooltip>
+            </Button>
+
             <Region VBox.vgrow="ALWAYS"/>
 
             <!-- Logout -->
