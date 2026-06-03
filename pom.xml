@@ -28,6 +28,14 @@
             <version>${javafx.version}</version>
         </dependency>
 
+        <!-- JUnit 5 (Phase 12 tests) -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- JavaFX FXML -->
         <dependency>
             <groupId>org.openjfx</groupId>
