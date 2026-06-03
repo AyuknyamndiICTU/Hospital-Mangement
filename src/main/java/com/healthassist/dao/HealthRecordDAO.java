@@ -15,7 +15,10 @@ import com.healthassist.model.User;
 
 public class HealthRecordDAO {
 
+    private final AppointmentDAO appointmentDAO = new AppointmentDAO();
+
     public List<HealthRecord> findByPatient(int patientId) {
+        // Backwards compatible: no RBAC scoping
         List<HealthRecord> list = new ArrayList<>();
         String sql = "SELECT hr.*, up.full_name AS patient_name, ud.full_name AS doctor_name FROM health_records hr LEFT JOIN users up ON hr.patient_id = up.id LEFT JOIN users ud ON hr.doctor_id = ud.id WHERE hr.patient_id = ? ORDER BY hr.visit_date DESC";
         Connection conn = null;
@@ -30,6 +33,50 @@ public class HealthRecordDAO {
             System.err.println("HealthRecordDAO.findByPatient error: " + e.getMessage());
         } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
         return list;
+    }
+
+    /**
+     * RBAC-aware find:
+     * - PATIENT: only their own (enforced by controller via selected patient id)
+     * - DOCTOR: only records created by this doctor AND only for patients they handled
+     * - ADMIN: all records for patient
+     */
+    public List<HealthRecord> findByPatient(int patientId, User actor) {
+        if (actor == null) return List.of();
+        if (actor.getRole() == User.Role.ADMIN) return findByPatient(patientId);
+
+        if (actor.getRole() == User.Role.DOCTOR) {
+            if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), patientId)) return List.of();
+
+            // Only records authored by this doctor
+            List<HealthRecord> list = new ArrayList<>();
+            String sql = "SELECT hr.*, up.full_name AS patient_name, ud.full_name AS doctor_name " +
+                         "FROM health_records hr " +
+                         "LEFT JOIN users up ON hr.patient_id = up.id " +
+                         "LEFT JOIN users ud ON hr.doctor_id = ud.id " +
+                         "WHERE hr.patient_id = ? AND hr.doctor_id = ? " +
+                         "ORDER BY hr.visit_date DESC";
+            Connection conn = null;
+            try {
+                conn = DatabaseConfig.getInstance().getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ps.setInt(1, patientId);
+                ps.setInt(2, actor.getId());
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) list.add(mapRow(rs));
+                rs.close(); ps.close();
+            } catch (SQLException e) {
+                System.err.println("HealthRecordDAO.findByPatient (doctor) error: " + e.getMessage());
+            } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
+            return list;
+        }
+
+        // PATIENT: only their own records
+        if (actor.getRole() == User.Role.PATIENT && actor.getId() == patientId) {
+            return findByPatient(patientId);
+        }
+
+        return List.of();
     }
 
     public List<HealthRecord> findAll() {
@@ -78,7 +125,13 @@ public class HealthRecordDAO {
     public int save(HealthRecord record, User actor) {
         if (actor == null || record == null) return -1;
         if (actor.getRole() == User.Role.PATIENT) return -1;
-        if (actor.getRole() == User.Role.DOCTOR && record.getDoctorId() != actor.getId()) return -1;
+
+        if (actor.getRole() == User.Role.DOCTOR) {
+            if (record.getDoctorId() != actor.getId()) return -1;
+            if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), record.getPatientId())) return -1;
+        }
+
+        // ADMIN allowed
         return save(record);
     }
 
@@ -109,7 +162,12 @@ public class HealthRecordDAO {
     public boolean update(HealthRecord record, User actor) {
         if (actor == null || record == null) return false;
         if (actor.getRole() == User.Role.PATIENT) return false;
-        if (actor.getRole() == User.Role.DOCTOR && record.getDoctorId() != actor.getId()) return false;
+
+        if (actor.getRole() == User.Role.DOCTOR) {
+            if (record.getDoctorId() != actor.getId()) return false;
+            if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), record.getPatientId())) return false;
+        }
+
         return update(record);
     }
 
@@ -139,12 +197,41 @@ public class HealthRecordDAO {
         if (actor.getRole() == User.Role.PATIENT) return false;
 
         if (actor.getRole() == User.Role.DOCTOR) {
+            // Enforce both doctor ownership and appointment linkage
             HealthRecord existing = findDoctorIdByRecordId(id);
             if (existing == null) return false;
             if (existing.getDoctorId() != actor.getId()) return false;
+
+            // We also need patientId to check appointment linkage
+            // Quick lookup: SELECT patient_id for record id
+            int patientId = findPatientIdByRecordId(id);
+            if (patientId < 0) return false;
+            if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), patientId)) return false;
         }
 
         return delete(id);
+    }
+
+    private int findPatientIdByRecordId(int id) {
+        String sql = "SELECT id, patient_id FROM health_records WHERE id = ?";
+        Connection conn = null;
+        try {
+            conn = DatabaseConfig.getInstance().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                int patientId = rs.getInt("patient_id");
+                rs.close();
+                ps.close();
+                return patientId;
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            System.err.println("HealthRecordDAO.findPatientIdByRecordId error: " + e.getMessage());
+        } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
+        return -1;
     }
 
     private HealthRecord findDoctorIdByRecordId(int id) {
