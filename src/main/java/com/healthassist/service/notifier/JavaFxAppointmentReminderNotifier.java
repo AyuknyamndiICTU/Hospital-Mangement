@@ -16,16 +16,20 @@ public class JavaFxAppointmentReminderNotifier implements AppointmentReminderNot
         if (appointment == null) return false;
 
         Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Appointment Reminder");
-            alert.setHeaderText("Upcoming Appointment");
-            alert.setContentText(String.format(
-                    "You have an appointment at %s\nPatient: %s\nDoctor: %s",
-                    appointment.getAppointmentDatetime().toLocalTime().toString(),
-                    appointment.getPatientName() != null ? appointment.getPatientName() : "N/A",
-                    appointment.getDoctorName() != null ? appointment.getDoctorName() : "N/A"
-            ));
-            alert.show();
+            try {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Appointment Reminder");
+                alert.setHeaderText("Upcoming Appointment");
+                alert.setContentText(String.format(
+                        "You have an appointment at %s\nPatient: %s\nDoctor: %s",
+                        appointment.getAppointmentDatetime().toLocalTime().toString(),
+                        appointment.getPatientName() != null ? appointment.getPatientName() : "N/A",
+                        appointment.getDoctorName() != null ? appointment.getDoctorName() : "N/A"
+                ));
+                alert.show();
+            } catch (Exception e) {
+                System.err.println("[Notifier] FX popup failed: " + e.getMessage());
+            }
         });
 
         return true;
