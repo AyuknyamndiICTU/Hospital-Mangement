@@ -106,8 +106,15 @@ public class AppointmentDAO {
             ps.setString(5, appt.getNotes());
             ps.executeUpdate();
             ResultSet keys = ps.getGeneratedKeys();
-            if (keys.next()) { int id = keys.getInt(1); appt.setId(id); keys.close(); ps.close(); return id; }
-            keys.close(); ps.close();
+            if (keys.next()) {
+                int id = keys.getInt(1);
+                appt.setId(id);
+                keys.close();
+                ps.close();
+                return id;
+            }
+            keys.close();
+            ps.close();
         } catch (SQLException e) {
             System.err.println("AppointmentDAO.save error: " + e.getMessage());
         } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
@@ -135,7 +142,8 @@ public class AppointmentDAO {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, status.name());
             ps.setInt(2, id);
-            int rows = ps.executeUpdate(); ps.close();
+            int rows = ps.executeUpdate();
+            ps.close();
             return rows > 0;
         } catch (SQLException e) {
             System.err.println("AppointmentDAO.updateStatus error: " + e.getMessage());
@@ -191,7 +199,8 @@ public class AppointmentDAO {
             conn = DatabaseConfig.getInstance().getConnection();
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
-            int rows = ps.executeUpdate(); ps.close();
+            int rows = ps.executeUpdate();
+            ps.close();
             return rows > 0;
         } catch (SQLException e) {
             System.err.println("AppointmentDAO.delete error: " + e.getMessage());
@@ -222,10 +231,76 @@ public class AppointmentDAO {
             ps.setTimestamp(2, Timestamp.valueOf(slotStart));
             ps.setTimestamp(3, Timestamp.valueOf(slotEnd));
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) { boolean conflict = rs.getInt(1) > 0; rs.close(); ps.close(); return conflict; }
-            rs.close(); ps.close();
+            if (rs.next()) {
+                boolean conflict = rs.getInt(1) > 0;
+                rs.close();
+                ps.close();
+                return conflict;
+            }
+            rs.close();
+            ps.close();
         } catch (SQLException e) {
             System.err.println("AppointmentDAO.hasConflict error: " + e.getMessage());
+        } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
+        return false;
+    }
+
+    /**
+     * Same as {@link #hasConflict(int, LocalDateTime)} but excludes one appointment id.
+     * Useful when rescheduling an existing appointment.
+     */
+    public boolean hasConflictExcluding(int doctorId, LocalDateTime dateTime, int excludeAppointmentId) {
+        String sql = "SELECT COUNT(*) FROM appointments " +
+                "WHERE doctor_id = ? " +
+                "AND status != 'CANCELLED' " +
+                "AND id <> ? " +
+                "AND appointment_datetime >= ? " +
+                "AND appointment_datetime < ?";
+        Connection conn = null;
+        try {
+            conn = DatabaseConfig.getInstance().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, doctorId);
+            ps.setInt(2, excludeAppointmentId);
+
+            LocalDateTime slotStart = dateTime.withMinute(0).withSecond(0);
+            LocalDateTime slotEnd = slotStart.plusHours(1);
+            ps.setTimestamp(3, Timestamp.valueOf(slotStart));
+            ps.setTimestamp(4, Timestamp.valueOf(slotEnd));
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                boolean conflict = rs.getInt(1) > 0;
+                rs.close();
+                ps.close();
+                return conflict;
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            System.err.println("AppointmentDAO.hasConflictExcluding error: " + e.getMessage());
+        } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
+        return false;
+    }
+
+    /**
+     * Reschedule an existing appointment by updating its datetime and notes.
+     * Keeps current status unchanged; caller decides what status should be.
+     */
+    public boolean updateAppointmentDatetimeAndNotes(int appointmentId, LocalDateTime newDatetime, String notes) {
+        String sql = "UPDATE appointments SET appointment_datetime = ?, notes = ? WHERE id = ?";
+        Connection conn = null;
+        try {
+            conn = DatabaseConfig.getInstance().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setTimestamp(1, Timestamp.valueOf(newDatetime));
+            ps.setString(2, notes);
+            ps.setInt(3, appointmentId);
+            int rows = ps.executeUpdate();
+            ps.close();
+            return rows > 0;
+        } catch (SQLException e) {
+            System.err.println("AppointmentDAO.updateAppointmentDatetimeAndNotes error: " + e.getMessage());
         } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
         return false;
     }
@@ -233,14 +308,21 @@ public class AppointmentDAO {
     /** Get upcoming appointments needing reminders (within 30 min, confirmed, not yet reminded) */
     public List<Appointment> getUpcomingReminders() {
         List<Appointment> list = new ArrayList<>();
-        String sql = "SELECT a.*, up.full_name AS patient_name, ud.full_name AS doctor_name FROM appointments a LEFT JOIN users up ON a.patient_id = up.id LEFT JOIN users ud ON a.doctor_id = ud.id WHERE a.appointment_datetime BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 30 MINUTE) AND a.status = 'CONFIRMED' AND a.reminder_sent = 0";
+        String sql = "SELECT a.*, up.full_name AS patient_name, ud.full_name AS doctor_name " +
+                "FROM appointments a " +
+                "LEFT JOIN users up ON a.patient_id = up.id " +
+                "LEFT JOIN users ud ON a.doctor_id = ud.id " +
+                "WHERE a.appointment_datetime BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 30 MINUTE) " +
+                "AND a.status = 'CONFIRMED' " +
+                "AND a.reminder_sent = 0";
         Connection conn = null;
         try {
             conn = DatabaseConfig.getInstance().getConnection();
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) list.add(mapRow(rs));
-            rs.close(); ps.close();
+            rs.close();
+            ps.close();
         } catch (SQLException e) {
             System.err.println("AppointmentDAO.getUpcomingReminders error: " + e.getMessage());
         } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
@@ -255,7 +337,8 @@ public class AppointmentDAO {
             conn = DatabaseConfig.getInstance().getConnection();
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
-            int rows = ps.executeUpdate(); ps.close();
+            int rows = ps.executeUpdate();
+            ps.close();
             return rows > 0;
         } catch (SQLException e) {
             System.err.println("AppointmentDAO.markReminderSent error: " + e.getMessage());
@@ -280,8 +363,14 @@ public class AppointmentDAO {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, status.name());
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) { int count = rs.getInt(1); rs.close(); ps.close(); return count; }
-            rs.close(); ps.close();
+            if (rs.next()) {
+                int count = rs.getInt(1);
+                rs.close();
+                ps.close();
+                return count;
+            }
+            rs.close();
+            ps.close();
         } catch (SQLException e) {
             System.err.println("AppointmentDAO.countTodayByStatus error: " + e.getMessage());
         } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
@@ -297,8 +386,14 @@ public class AppointmentDAO {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, status.name());
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) { int count = rs.getInt(1); rs.close(); ps.close(); return count; }
-            rs.close(); ps.close();
+            if (rs.next()) {
+                int count = rs.getInt(1);
+                rs.close();
+                ps.close();
+                return count;
+            }
+            rs.close();
+            ps.close();
         } catch (SQLException e) {
             System.err.println("AppointmentDAO.countByStatus error: " + e.getMessage());
         } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
@@ -312,8 +407,14 @@ public class AppointmentDAO {
             conn = DatabaseConfig.getInstance().getConnection();
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) { int c = rs.getInt(1); rs.close(); ps.close(); return c; }
-            rs.close(); ps.close();
+            if (rs.next()) {
+                int c = rs.getInt(1);
+                rs.close();
+                ps.close();
+                return c;
+            }
+            rs.close();
+            ps.close();
         } catch (SQLException e) {
             System.err.println("AppointmentDAO.countToday error: " + e.getMessage());
         } finally { DatabaseConfig.getInstance().releaseConnection(conn); }
@@ -328,7 +429,7 @@ public class AppointmentDAO {
         String sql = """
             SELECT COUNT(*) FROM appointments
             WHERE doctor_id = ? AND patient_id = ?
-              AND status IN ('CONFIRMED','COMPLETED')
+              AND status <> 'CANCELLED'
         """;
 
         Connection conn = null;

@@ -9,9 +9,11 @@ import java.util.Map;
 
 import com.healthassist.dao.AppointmentDAO;
 import com.healthassist.dao.DoctorDAO;
+import com.healthassist.dao.HealthRecordDAO;
 import com.healthassist.exception.InvalidTransitionException;
 import com.healthassist.exception.UnauthorizedActionException;
 import com.healthassist.model.Appointment;
+import com.healthassist.model.HealthRecord;
 import com.healthassist.model.User;
 import com.healthassist.util.AuditLogger;
 import com.healthassist.util.SessionManager;
@@ -23,6 +25,7 @@ public class AppointmentService {
 
     private final AppointmentDAO appointmentDAO = new AppointmentDAO();
     private final DoctorDAO doctorDAO = new DoctorDAO();
+    private final HealthRecordDAO healthRecordDAO = new HealthRecordDAO();
 
     /**
      * Get available time slots for a doctor on a given date.
@@ -262,8 +265,28 @@ public class AppointmentService {
         }
 
         String updatedNotes = buildUpdatedNotes(appt.getNotes(), reason, "CONFIRMED");
-        return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.CONFIRMED, updatedNotes,
-                SessionManager.getInstance().getCurrentUser());
+        boolean ok = appointmentDAO.updateStatusAndNotes(
+                appointmentId,
+                Appointment.Status.CONFIRMED,
+                updatedNotes,
+                SessionManager.getInstance().getCurrentUser()
+        );
+
+        if (!ok) return false;
+
+        // Create a health record on CONFIRM so the patient can load it on HealthRecords.fxml.
+        // We use:
+        // - diagnosis = appointment notes captured when booking (patient concerns)
+        // - prescription = doctor's provided confirmation reason
+        User actor = SessionManager.getInstance().getCurrentUser();
+
+        HealthRecord hr = new HealthRecord();
+        hr.setDiagnosis(appt.getNotes());
+        hr.setPrescription(reason != null ? reason.trim() : "");
+        hr.setVisitDate(appt.getAppointmentDatetime() != null ? appt.getAppointmentDatetime().toLocalDate() : LocalDate.now());
+
+        int hrId = healthRecordDAO.saveForAppointment(appointmentId, hr, actor);
+        return hrId > 0;
     }
 
     /**
@@ -322,6 +345,70 @@ public class AppointmentService {
         String updatedNotes = buildUpdatedNotes(appt.getNotes(), reason, "COMPLETED");
         return appointmentDAO.updateStatusAndNotes(appointmentId, Appointment.Status.COMPLETED, updatedNotes,
                 SessionManager.getInstance().getCurrentUser());
+    }
+
+    /**
+     * Reschedule an existing appointment by updating its datetime (status unchanged).
+     * Used by doctor notifications/popups.
+     */
+    public boolean rescheduleAppointment(User actor, int appointmentId, LocalDateTime newDatetime, String reason) {
+        if (actor == null || actor.getRole() == User.Role.PATIENT) {
+            throw new UnauthorizedActionException("reschedule appointment", "patients cannot reschedule via this path");
+        }
+        if (newDatetime == null) return false;
+
+        Appointment appt = appointmentDAO.findById(appointmentId);
+        if (appt == null) return false;
+
+        if (actor.getRole() == User.Role.DOCTOR && appt.getDoctorId() != actor.getId()) {
+            throw new UnauthorizedActionException("reschedule appointment", "doctor may only reschedule own appointments");
+        }
+
+        // Do not allow rescheduling terminal states
+        if (appt.getStatus() == Appointment.Status.CANCELLED || appt.getStatus() == Appointment.Status.COMPLETED) {
+            throw new InvalidTransitionException("Cannot reschedule appointment in state " + appt.getStatus());
+        }
+
+        // Enforce scheduling rules (same rules as booking/confirm)
+        if (!isAppointmentInFuture(newDatetime)) {
+            throw new InvalidTransitionException("Cannot reschedule an appointment that is not at least 30 minutes in the future");
+        }
+        if (!isWithinWorkingHours(appt.getDoctorId(), newDatetime)) {
+            throw new InvalidTransitionException("Cannot reschedule outside the doctor's working hours");
+        }
+
+        // Conflict check excluding current appointment id
+        if (appointmentDAO.hasConflictExcluding(appt.getDoctorId(), newDatetime, appt.getId())) {
+            return false;
+        }
+
+        String updatedNotes = buildUpdatedNotes(appt.getNotes(), reason, "RESCHEDULED");
+        boolean ok = appointmentDAO.updateAppointmentDatetimeAndNotes(appt.getId(), newDatetime, updatedNotes);
+
+        if (ok) {
+            java.sql.Connection conn = null;
+            try {
+                conn = com.healthassist.config.DatabaseConfig.getInstance().getConnection();
+                AuditLogger.log(
+                        conn,
+                        "APPOINTMENT_RESCHEDULED",
+                        actor.getId(),
+                        "appointment",
+                        appt.getId(),
+                        AuditLogger.toJson(
+                                "oldDatetime", appt.getAppointmentDatetime() != null ? appt.getAppointmentDatetime().toString() : null,
+                                "newDatetime", newDatetime.toString(),
+                                "reason", reason != null ? reason : ""
+                        )
+                );
+            } catch (java.sql.SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                com.healthassist.config.DatabaseConfig.getInstance().releaseConnection(conn);
+            }
+        }
+
+        return ok;
     }
 
     // package-private for unit tests

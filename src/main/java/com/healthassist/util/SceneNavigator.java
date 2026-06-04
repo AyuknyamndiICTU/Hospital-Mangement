@@ -52,10 +52,11 @@ public class SceneNavigator {
             });
             fadeOut.play();
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println("Navigation error: " + e.getMessage());
             e.printStackTrace();
-            AlertUtil.showError("Navigation Error", "Could not load page: " + fxmlPath);
+            String detail = (e.getMessage() == null || e.getMessage().isBlank()) ? e.toString() : e.getMessage();
+            AlertUtil.showError("Navigation Error", "Could not load page: " + fxmlPath + "\n" + detail);
         }
     }
 

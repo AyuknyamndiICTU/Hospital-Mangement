@@ -3,15 +3,20 @@ package com.healthassist.controller;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import com.healthassist.dao.AppointmentDAO;
 import com.healthassist.dao.UserDAO;
 import com.healthassist.model.Appointment;
 import com.healthassist.model.User;
+import com.healthassist.service.AppointmentService;
 import com.healthassist.service.ReminderService;
+import com.healthassist.util.AlertUtil;
 import com.healthassist.util.DateUtil;
 import com.healthassist.util.SceneNavigator;
 import com.healthassist.util.SessionManager;
@@ -25,7 +30,12 @@ import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -47,6 +57,7 @@ public class DashboardController {
     @FXML private Button navHome, navAppointments, navPatients, navDoctors, navRecords, navAuditLog;
 
     private final AppointmentDAO appointmentDAO = new AppointmentDAO();
+    private final AppointmentService appointmentService = new AppointmentService();
     private final UserDAO userDAO = new UserDAO();
     private final com.healthassist.dao.HealthRecordDAO healthRecordDAO = new com.healthassist.dao.HealthRecordDAO();
     private ReminderService reminderService;
@@ -91,6 +102,20 @@ public class DashboardController {
 
         // Start reminder service daemon
         startReminderService();
+
+        // Doctor login popup for first pending appointment
+        if (user != null && user.getRole() == User.Role.DOCTOR) {
+            List<Appointment> doctorAppointments = appointmentDAO.findByDoctor(user.getId());
+            Appointment pending = doctorAppointments.stream()
+                    .filter(a -> a.getStatus() == Appointment.Status.PENDING)
+                    .sorted(Comparator.comparing(Appointment::getAppointmentDatetime))
+                    .findFirst()
+                    .orElse(null);
+
+            if (pending != null) {
+                Platform.runLater(() -> showDoctorAppointmentDecisionDialog(pending));
+            }
+        }
     }
 
     private void setupProfile(User user) {
@@ -368,7 +393,12 @@ public class DashboardController {
         box.getStyleClass().add("appointment-item");
 
         box.setOnMouseClicked(e -> {
-            Platform.runLater(() -> SceneNavigator.navigateTo("AppointmentPage.fxml", box));
+            User cur = SessionManager.getInstance().getCurrentUser();
+            if (cur != null && cur.getRole() == User.Role.DOCTOR) {
+                Platform.runLater(() -> showDoctorAppointmentDecisionDialog(appt));
+            } else {
+                Platform.runLater(() -> SceneNavigator.navigateTo("AppointmentPage.fxml", box));
+            }
         });
 
         String statusColor = switch (appt.getStatus()) {
@@ -394,6 +424,89 @@ public class DashboardController {
 
         box.getChildren().addAll(dot, info, status);
         return box;
+    }
+
+    private void showDoctorAppointmentDecisionDialog(Appointment appt) {
+        if (appt == null) return;
+
+        User actor = SessionManager.getInstance().getCurrentUser();
+        if (actor == null || actor.getRole() != User.Role.DOCTOR) return;
+
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Appointment Action");
+
+        ButtonType confirmType = new ButtonType("Confirm", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelType = new ButtonType("Cancel", ButtonBar.ButtonData.NO);
+        ButtonType reschedType = new ButtonType("Reschedule", ButtonBar.ButtonData.APPLY);
+        ButtonType closeType = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        dialog.getDialogPane().getButtonTypes().addAll(confirmType, cancelType, reschedType, closeType);
+
+        Label summary = new Label(
+                "Patient: " + (appt.getPatientName() != null ? appt.getPatientName() : ("#" + appt.getPatientId()))
+                        + "\nWhen: " + (appt.getAppointmentDatetime() != null ? fmt.format(appt.getAppointmentDatetime()) : "-")
+                        + "\nStatus: " + appt.getStatus()
+        );
+        summary.setWrapText(true);
+
+        TextArea reasonArea = new TextArea();
+        reasonArea.setPromptText("Reason (optional)");
+        reasonArea.setPrefRowCount(2);
+
+        TextField datetimeField = new TextField();
+        datetimeField.setPromptText("New datetime (yyyy-MM-dd HH:mm)");
+        if (appt.getAppointmentDatetime() != null) {
+            datetimeField.setText(fmt.format(appt.getAppointmentDatetime()));
+        }
+
+        VBox content = new VBox(10,
+                summary,
+                new Label("Reason:"),
+                reasonArea,
+                new Label("Reschedule datetime (only used if clicking Reschedule):"),
+                datetimeField
+        );
+        dialog.getDialogPane().setContent(content);
+
+        if (appt.getStatus() != Appointment.Status.PENDING) {
+            dialog.getDialogPane().lookupButton(confirmType).setDisable(true);
+        }
+
+        dialog.setResultConverter(bt -> bt);
+        Optional<ButtonType> result = dialog.showAndWait();
+
+        String reason = reasonArea.getText() != null ? reasonArea.getText().trim() : null;
+
+        if (result.isEmpty()) return;
+        ButtonType pressed = result.get();
+
+        try {
+            if (pressed == confirmType) {
+                boolean ok = appointmentService.confirmAppointment(actor, appt.getId(), reason);
+                if (!ok) AlertUtil.showError("Error", "Could not confirm appointment.");
+            } else if (pressed == cancelType) {
+                boolean ok = appointmentService.cancelAppointment(actor, appt.getId(), reason);
+                if (!ok) AlertUtil.showError("Error", "Could not cancel appointment.");
+            } else if (pressed == reschedType) {
+                String raw = datetimeField.getText() != null ? datetimeField.getText().trim() : "";
+                if (raw.isEmpty()) {
+                    AlertUtil.showError("Validation", "Enter a new datetime.");
+                    return;
+                }
+                LocalDateTime newDt = LocalDateTime.parse(raw, fmt);
+                boolean ok = appointmentService.rescheduleAppointment(actor, appt.getId(), newDt, reason);
+                if (!ok) AlertUtil.showError("Error", "Could not reschedule appointment.");
+            } else {
+                // closeType or unknown -> do nothing
+            }
+        } catch (Exception ex) {
+            AlertUtil.showError("Error", ex.getMessage() != null ? ex.getMessage() : "Operation failed.");
+        }
+
+        // Refresh dialog-triggered item display by reloading stats
+        loadStats();
     }
 
     private void renderCalendar() {

@@ -51,7 +51,14 @@ public class HealthRecordDAO {
         if (actor.getRole() == User.Role.ADMIN) return findByPatientUnscoped(patientId);
 
         if (actor.getRole() == User.Role.DOCTOR) {
-            if (!appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), patientId)) return List.of();
+            boolean hasAppt = appointmentDAO.doctorHasAppointmentWithPatient(actor.getId(), patientId);
+            System.out.println(
+                    "[HealthRecordDAO] doctorHasAppointmentWithPatient check -> doctorId="
+                            + actor.getId()
+                            + ", patientId=" + patientId
+                            + ", hasAppt=" + hasAppt
+            );
+            if (!hasAppt) return List.of();
 
             // Only records authored by this doctor
             List<HealthRecord> list = new ArrayList<>();

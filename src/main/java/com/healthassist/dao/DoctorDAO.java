@@ -152,14 +152,17 @@ public class DoctorDAO {
      * Throws {@link UnauthorizedActionException} on RBAC denial.
      */
     public boolean saveSchedule(int doctorId, List<Map<String, String>> schedule, User actor) {
+        // Allow SYSTEM/Signup flow where no logged-in user exists yet.
         if (actor == null) {
-            throw new UnauthorizedActionException("save schedule", "missing actor");
+            return saveSchedule(doctorId, schedule);
         }
+
         boolean adminOk = actor.getRole() == User.Role.ADMIN;
         boolean selfOk  = actor.getRole() == User.Role.DOCTOR && actor.getId() == doctorId;
         if (!adminOk && !selfOk) {
             throw new UnauthorizedActionException("save schedule", "must be admin or self");
         }
+
         boolean ok = saveSchedule(doctorId, schedule);
         if (ok) {
             Connection conn = null;

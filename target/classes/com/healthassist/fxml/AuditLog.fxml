@@ -10,10 +10,12 @@
             fx:controller="com.healthassist.controller.AuditLogController"
             prefWidth="1200" prefHeight="800" styleClass="dashboard-root">
 
-    <VBox spacing="16" padding="24" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+    <VBox spacing="16" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
           AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+        <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
 
         <HBox spacing="12" alignment="CENTER_LEFT">
+            <Button text="← Back" styleClass="btn-outline" onAction="#onBack"/>
             <Label text="Audit Log" styleClass="page-title">
                 <font><Font name="System Bold" size="24"/></font>
             </Label>

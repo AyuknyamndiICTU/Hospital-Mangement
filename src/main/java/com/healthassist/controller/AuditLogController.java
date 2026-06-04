@@ -6,6 +6,7 @@ import java.util.List;
 import com.healthassist.dao.AuditLogDAO;
 import com.healthassist.model.AuditLogEntry;
 import com.healthassist.model.User;
+import com.healthassist.util.SceneNavigator;
 import com.healthassist.util.SessionManager;
 
 import javafx.collections.FXCollections;
@@ -54,6 +55,12 @@ public class AuditLogController {
     @FXML
     private void onRefresh() {
         loadEntries();
+    }
+
+    @FXML
+    private void onBack(javafx.event.ActionEvent e) {
+        // Navigate back to dashboard
+        SceneNavigator.navigateTo("Dashboard.fxml", e);
     }
 
     private void loadEntries() {

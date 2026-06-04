@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import com.healthassist.dao.AppointmentDAO;
 import com.healthassist.dao.DoctorDAO;
 import com.healthassist.dao.HealthRecordDAO;
 import com.healthassist.dao.PatientDAO;
@@ -42,6 +43,7 @@ public class HealthRecordController {
     private final PatientDAO patientDAO = new PatientDAO();
     private final DoctorDAO doctorDAO = new DoctorDAO();
     private final HealthRecordDAO healthRecordDAO = new HealthRecordDAO();
+    private final AppointmentDAO appointmentDAO = new AppointmentDAO();
     private List<Patient> patientList;
     private int selectedPatientId = -1;
 
@@ -60,12 +62,25 @@ public class HealthRecordController {
         Task<List<Patient>> task = new Task<>() {
             @Override protected List<Patient> call() { return patientDAO.findAll(); }
         };
+
         task.setOnSucceeded(e -> {
-            patientList = task.getValue();
+            List<Patient> allPatients = task.getValue();
+            User user = SessionManager.getInstance().getCurrentUser();
+
+            // DOCTOR: show only patients that doctor has appointments with (so Load Records can actually work)
+            if (user != null && user.getRole() == User.Role.DOCTOR) {
+                int doctorId = user.getId();
+                allPatients = allPatients.stream()
+                        .filter(p -> appointmentDAO.doctorHasAppointmentWithPatient(doctorId, p.getId()))
+                        .toList();
+            }
+
+            patientList = allPatients;
+
             patientCombo.getItems().clear();
             for (Patient p : patientList) patientCombo.getItems().add(p.getId() + " - " + p.getFullName());
 
-            User user = SessionManager.getInstance().getCurrentUser();
+            // PATIENT: auto-select self and lock selector
             if (user != null && user.getRole() == User.Role.PATIENT) {
                 for (int i = 0; i < patientList.size(); i++) {
                     if (patientList.get(i).getId() == user.getId()) {
@@ -76,8 +91,27 @@ public class HealthRecordController {
                         break;
                     }
                 }
+                return;
+            }
+
+            // DOCTOR: auto-select the first visible patient so Load Records is immediate
+            if (user != null && user.getRole() == User.Role.DOCTOR && !patientList.isEmpty()) {
+                patientCombo.getSelectionModel().select(0);
+                selectedPatientId = patientList.get(0).getId();
+                loadRecords(selectedPatientId);
+            } else {
+                selectedPatientId = -1;
+                recordsBox.getChildren().clear();
+                timelineLine.getChildren().clear();
+                recordsBox.getChildren().add(new Label("Select a patient and click Load Records."));
             }
         });
+
+        task.setOnFailed(e -> {
+            System.err.println("HealthRecordController.loadPatients failed: " + task.getException());
+            AlertUtil.showError("Error", "Could not load patients.");
+        });
+
         new Thread(task).start();
     }
 
@@ -94,6 +128,12 @@ public class HealthRecordController {
         Task<List<HealthRecord>> task = new Task<>() {
             @Override protected List<HealthRecord> call() { return healthRecordDAO.findByPatient(patientId, actor); }
         };
+
+        task.setOnFailed(e -> {
+            System.err.println("HealthRecordController.loadRecords failed: " + task.getException());
+            AlertUtil.showError("Error", "Could not load health records for this patient.");
+        });
+
         task.setOnSucceeded(e -> {
             timelineLine.getChildren().clear();
             recordsBox.getChildren().clear();

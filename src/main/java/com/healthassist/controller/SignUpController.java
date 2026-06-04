@@ -203,7 +203,10 @@ public class SignUpController {
         task.setOnFailed(e -> {
             signUpBtn.setDisable(false);
             signUpBtn.setText("Sign Up");
-            showError("Signup failed. Please check your connection.");
+
+            Throwable ex = task.getException();
+            String detail = (ex == null) ? "Unknown error" : ex.getMessage();
+            showError("Signup failed: " + detail);
         });
 
         new Thread(task).start();
